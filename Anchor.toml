@@ -1,0 +1,20 @@
+[toolchain]
+package_manager = "npm"
+solana_version = "3.1.6"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

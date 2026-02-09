@@ -1,0 +1,315 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { PaperclipProtocol } from "../target/types/paperclip_protocol";
+import { assert } from "chai";
+
+const { PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
+
+const PROTOCOL_SEED = Buffer.from("protocol");
+const AGENT_SEED = Buffer.from("agent");
+const TASK_SEED = Buffer.from("task");
+const CLAIM_SEED = Buffer.from("claim");
+
+function toFixedBytes(input: string, size: number): number[] {
+  const buf = Buffer.alloc(size);
+  const data = Buffer.from(input, "utf8");
+  if (data.length > size) {
+    throw new Error(`Input exceeds ${size} bytes`);
+  }
+  data.copy(buf);
+  return Array.from(buf);
+}
+
+function taskIdBytes(taskId: number): Buffer {
+  const buf = Buffer.alloc(4);
+  buf.writeUInt32LE(taskId, 0);
+  return buf;
+}
+
+function getProtocolPda(programId: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync([PROTOCOL_SEED], programId)[0];
+}
+
+function getAgentPda(programId: PublicKey, agent: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [AGENT_SEED, agent.toBuffer()],
+    programId
+  )[0];
+}
+
+function getTaskPda(programId: PublicKey, taskId: number): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [TASK_SEED, taskIdBytes(taskId)],
+    programId
+  )[0];
+}
+
+function getClaimPda(
+  programId: PublicKey,
+  taskId: number,
+  agent: PublicKey
+): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [CLAIM_SEED, taskIdBytes(taskId), agent.toBuffer()],
+    programId
+  )[0];
+}
+
+async function airdrop(
+  connection: anchor.web3.Connection,
+  pubkey: PublicKey,
+  amount = 2 * LAMPORTS_PER_SOL
+) {
+  const sig = await connection.requestAirdrop(pubkey, amount);
+  await connection.confirmTransaction(sig, "confirmed");
+}
+
+describe("paperclip-protocol", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+
+  const provider = anchor.getProvider() as anchor.AnchorProvider;
+  const program = anchor.workspace
+    .paperclipProtocol as Program<PaperclipProtocol>;
+  const protocolPda = getProtocolPda(program.programId);
+
+  const baseUnit = new anchor.BN(100);
+  const task1Id = 1;
+  const task2Id = 2;
+
+  const unauthorized = Keypair.generate();
+  const agent2 = Keypair.generate();
+  const agent3 = Keypair.generate();
+
+  before(async () => {
+    await airdrop(provider.connection, unauthorized.publicKey);
+    await airdrop(provider.connection, agent2.publicKey);
+    await airdrop(provider.connection, agent3.publicKey);
+  });
+
+  it("Initializes protocol", async () => {
+    await program.methods
+      .initialize(baseUnit)
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const protocol = await program.account.protocolState.fetch(protocolPda);
+    assert.equal(protocol.baseRewardUnit.toNumber(), 100);
+    assert.equal(protocol.totalAgents, 0);
+    assert.equal(protocol.totalTasks, 0);
+  });
+
+  it("Registers agent and airdrops clips", async () => {
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: agentPda,
+        agent: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const agent = await program.account.agentAccount.fetch(agentPda);
+    assert.equal(agent.clipsBalance.toNumber(), 100);
+    assert.equal(agent.efficiencyTier, 0);
+    assert.equal(agent.tasksCompleted, 0);
+  });
+
+  it("Creates task (authority only)", async () => {
+    const taskPda = getTaskPda(program.programId, task1Id);
+    await program.methods
+      .createTask(
+        task1Id,
+        toFixedBytes("Task One", 32),
+        toFixedBytes("bafy-task-one", 64),
+        new anchor.BN(50),
+        2
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const task = await program.account.taskRecord.fetch(taskPda);
+    assert.equal(task.taskId, task1Id);
+    assert.equal(task.rewardClips.toNumber(), 50);
+    assert.equal(task.maxClaims, 2);
+    assert.equal(task.currentClaims, 0);
+    assert.equal(task.isActive, true);
+  });
+
+  it("Rejects non-authority create_task", async () => {
+    const taskPda = getTaskPda(program.programId, 99);
+    try {
+      await program.methods
+        .createTask(
+          99,
+          toFixedBytes("Unauthorized", 32),
+          toFixedBytes("bafy-unauthorized", 64),
+          new anchor.BN(10),
+          1
+        )
+        .accounts({
+          protocol: protocolPda,
+          authority: unauthorized.publicKey,
+          task: taskPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([unauthorized])
+        .rpc();
+      assert.fail("Expected unauthorized create_task to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Unauthorized");
+    }
+  });
+
+  it("Submits proof and awards clips", async () => {
+    const taskPda = getTaskPda(program.programId, task1Id);
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const claimPda = getClaimPda(
+      program.programId,
+      task1Id,
+      provider.wallet.publicKey
+    );
+
+    await program.methods
+      .submitProof(task1Id, toFixedBytes("bafy-proof-one", 64))
+      .accounts({
+        protocol: protocolPda,
+        task: taskPda,
+        agentAccount: agentPda,
+        claim: claimPda,
+        agent: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const agent = await program.account.agentAccount.fetch(agentPda);
+    const task = await program.account.taskRecord.fetch(taskPda);
+    const claim = await program.account.claimRecord.fetch(claimPda);
+
+    assert.equal(agent.clipsBalance.toNumber(), 150);
+    assert.equal(agent.tasksCompleted, 1);
+    assert.equal(task.currentClaims, 1);
+    assert.equal(claim.taskId, task1Id);
+  });
+
+  it("Rejects double claim for same agent", async () => {
+    const taskPda = getTaskPda(program.programId, task1Id);
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const claimPda = getClaimPda(
+      program.programId,
+      task1Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task1Id, toFixedBytes("bafy-proof-one", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agentPda,
+          claim: claimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      assert.fail("Expected double claim to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message.toLowerCase(), "already in use");
+    }
+  });
+
+  it("Rejects claims when max_claims reached", async () => {
+    const taskPda = getTaskPda(program.programId, task2Id);
+    await program.methods
+      .createTask(
+        task2Id,
+        toFixedBytes("Task Two", 32),
+        toFixedBytes("bafy-task-two", 64),
+        new anchor.BN(25),
+        1
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const agent2Pda = getAgentPda(program.programId, agent2.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: agent2Pda,
+        agent: agent2.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent2])
+      .rpc();
+
+    const claimPda = getClaimPda(program.programId, task2Id, agent2.publicKey);
+    await program.methods
+      .submitProof(task2Id, toFixedBytes("bafy-proof-two", 64))
+      .accounts({
+        protocol: protocolPda,
+        task: taskPda,
+        agentAccount: agent2Pda,
+        claim: claimPda,
+        agent: agent2.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent2])
+      .rpc();
+
+    const agent3Pda = getAgentPda(program.programId, agent3.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: agent3Pda,
+        agent: agent3.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent3])
+      .rpc();
+
+    const agent3ClaimPda = getClaimPda(
+      program.programId,
+      task2Id,
+      agent3.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task2Id, toFixedBytes("bafy-proof-three", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agent3Pda,
+          claim: agent3ClaimPda,
+          agent: agent3.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([agent3])
+        .rpc();
+      assert.fail("Expected max claims to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Task is fully claimed");
+    }
+  });
+});
