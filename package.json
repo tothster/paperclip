@@ -1,6 +1,16 @@
 {
   "license": "ISC",
   "scripts": {
+    "check:env": "node scripts/check-env.cjs",
+    "install:all": "node scripts/install-all.cjs",
+    "setup:local": "node scripts/setup-local.cjs",
+    "clean": "node scripts/clean.cjs",
+    "build": "anchor build && cd cli && npm run build",
+    "test": "anchor test --skip-local-validator",
+    "test:integration": "npx tsx scripts/integration-test.ts",
+    "publish:tasks": "npx tsx scripts/publish-task.ts",
+    "verify:tasks": "npx tsx scripts/verify-tasks.ts",
+    "storacha:clean": "npx tsx scripts/storacha-clean.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
