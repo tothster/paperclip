@@ -1,13 +1,13 @@
 [toolchain]
-package_manager = "npm"
 solana_version = "3.1.6"
+package_manager = "npm"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
+paperclip_protocol = "48Uno3JeYPopKegPsDFgQXptMxz1ZWjFAQij4oMZDSkq"
 
 [registry]
 url = "https://api.apr.dev"
