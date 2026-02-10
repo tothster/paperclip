@@ -1,8 +1,12 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { PROGRAM_ID, RPC_URL, WALLET_PATH } from "./config";
+import { PROGRAM_ID, RPC_URL, WALLET_PATH } from "./config.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
@@ -37,7 +41,9 @@ export function getProgram(): anchor.Program<anchor.Idl> {
     "paperclip_protocol.json"
   );
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8")) as anchor.Idl;
-  return new (anchor.Program as any)(idl, PROGRAM_ID, provider);
+  // Override address with env-configurable PROGRAM_ID
+  (idl as any).address = PROGRAM_ID.toBase58();
+  return new anchor.Program(idl, provider);
 }
 
 export function toFixedBytes(input: string, size: number): number[] {

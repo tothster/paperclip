@@ -1,14 +1,33 @@
-import { create } from "@web3-storage/w3up-client";
+import { create } from "@storacha/client";
+import { StoreMemory } from "@storacha/client/stores/memory";
+import * as Proof from "@storacha/client/proof";
+import { Signer } from "@storacha/client/principal/ed25519";
 import { File } from "@web-std/file";
-import { importDAG } from "@ucanto/core/delegation";
-import { CarReader } from "@ipld/car";
 import {
   STORACHA_GATEWAY_URL,
+  STORACHA_AGENT_KEY,
   W3UP_SPACE_DID,
   W3UP_SPACE_PROOF,
-} from "./config";
+} from "./config.js";
 import fs from "fs";
 import crypto from "crypto";
+
+/**
+ * Create a Storacha client with the correct principal key.
+ *
+ * If STORACHA_AGENT_KEY is set, uses that as the agent identity.
+ * Otherwise falls back to auto-generated key (may fail if proof
+ * audience doesn't match).
+ */
+async function createClient() {
+  if (STORACHA_AGENT_KEY) {
+    const principal = Signer.parse(STORACHA_AGENT_KEY);
+    const store = new StoreMemory();
+    return create({ principal, store });
+  }
+
+  return create();
+}
 
 async function ensureSpace(client: Awaited<ReturnType<typeof create>>) {
   const current = client.currentSpace();
@@ -16,14 +35,12 @@ async function ensureSpace(client: Awaited<ReturnType<typeof create>>) {
     return;
   }
 
-  const proof = W3UP_SPACE_PROOF;
-  if (!proof) {
+  const proofStr = W3UP_SPACE_PROOF;
+  if (!proofStr) {
     throw new Error("W3UP_SPACE_PROOF is required to upload to Storacha");
   }
 
-  const bytes = Buffer.from(proof, "base64");
-  const car = await CarReader.fromBytes(bytes);
-  const delegation = await importDAG(car as any);
+  const delegation = await Proof.parse(proofStr);
   const space = await client.addSpace(delegation);
   const spaceDid = (W3UP_SPACE_DID || space.did()) as `did:${string}:${string}`;
   await client.setCurrentSpace(spaceDid);
@@ -42,7 +59,7 @@ export async function uploadJson(
     return `mock-${hash.slice(0, 16)}`;
   }
 
-  const client = await create();
+  const client = await createClient();
   await ensureSpace(client);
 
   const payload = JSON.stringify(data, null, 2);
