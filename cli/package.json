@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "bin": {
-    "pc": "dist/index.js"
+    "pc": "dist/bin.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

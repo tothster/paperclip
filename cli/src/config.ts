@@ -6,7 +6,7 @@ export const RPC_URL = process.env.PAPERCLIP_RPC_URL || "http://127.0.0.1:8899";
 
 export const PROGRAM_ID = new PublicKey(
   process.env.PAPERCLIP_PROGRAM_ID ||
-    "48Uno3JeYPopKegPsDFgQXptMxz1ZWjFAQij4oMZDSkq"
+    "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
 );
 
 export const WALLET_PATH =
@@ -34,3 +34,32 @@ export const STORACHA_AGENT_KEY =
 
 export const W3UP_SPACE_PROOF =
   process.env.W3UP_SPACE_PROOF || DEFAULT_W3UP_SPACE_PROOF;
+
+// ---------------------------------------------------------------------------
+// Privy server wallet credentials (managed by protocol team)
+// Fill these before building to enable Privy-backed agent wallets.
+// When empty, the CLI falls back to local keypair signing.
+// ---------------------------------------------------------------------------
+
+const DEFAULT_PRIVY_APP_ID = "";
+const DEFAULT_PRIVY_APP_SECRET = "";
+
+export const PRIVY_APP_ID =
+  process.env.PRIVY_APP_ID || DEFAULT_PRIVY_APP_ID;
+
+export const PRIVY_APP_SECRET =
+  process.env.PRIVY_APP_SECRET || DEFAULT_PRIVY_APP_SECRET;
+
+/**
+ * Wallet type selector:
+ *   "privy"  — server-side signing via Privy (recommended for agents)
+ *   "local"  — raw keypair from WALLET_PATH (development fallback)
+ *
+ * Defaults to "privy" when Privy credentials are baked in,
+ * otherwise falls back to "local".
+ */
+export type WalletType = "privy" | "local";
+
+export const WALLET_TYPE: WalletType =
+  (process.env.PAPERCLIP_WALLET_TYPE as WalletType) ||
+  (PRIVY_APP_ID && PRIVY_APP_SECRET ? "privy" : "local");

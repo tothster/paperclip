@@ -17,6 +17,8 @@ export type CliMode = "agent" | "human";
 
 export interface PaperclipSettings {
   mode: CliMode;
+  privyWalletId?: string;
+  privyWalletAddress?: string;
 }
 
 // =============================================================================

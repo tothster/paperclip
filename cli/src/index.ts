@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Paperclip Protocol CLI
  *
@@ -21,6 +20,8 @@ import {
 import { fetchJson, uploadJson } from "./storacha.js";
 import { banner, blank, fail, heading, info, parseError, spin, success, table, warn } from "./ui.js";
 import { getMode, setMode, configPath, type CliMode } from "./settings.js";
+import { WALLET_TYPE } from "./config.js";
+import { provisionPrivyWallet } from "./privy.js";
 import type { AgentState, TaskInfo } from "./types.js";
 
 const TASK_IS_ACTIVE_OFFSET = 153;
@@ -120,7 +121,7 @@ cli
   .description("Register as an agent on the protocol")
   .action(async () => {
     applyMockFlag();
-    const programClient = getProgram();
+    const programClient = await getProgram();
     const provider = programClient.provider as anchor.AnchorProvider;
     const wallet = provider.wallet as anchor.Wallet;
     const pubkey = wallet.publicKey;
@@ -129,6 +130,24 @@ cli
       banner();
       info("👤 Wallet:", pubkey.toBase58());
       blank();
+    }
+
+    // If using Privy, auto-provision wallet on first init
+    if (WALLET_TYPE === "privy") {
+      const spinnerProvision = isJsonMode() ? null : spin("Provisioning server wallet...");
+      try {
+        await provisionPrivyWallet();
+        spinnerProvision?.succeed("Server wallet ready");
+      } catch (err) {
+        spinnerProvision?.fail("Failed to provision wallet");
+        if (isJsonMode()) {
+          jsonOutput({ ok: false, error: parseError(err) });
+        } else {
+          fail(parseError(err));
+          blank();
+        }
+        process.exit(1);
+      }
     }
 
     // Check if already registered
@@ -205,7 +224,7 @@ cli
   .description("Show your agent status and recommendations")
   .action(async () => {
     applyMockFlag();
-    const programClient = getProgram();
+    const programClient = await getProgram();
     const provider = programClient.provider as anchor.AnchorProvider;
     const wallet = provider.wallet as anchor.Wallet;
     const pubkey = wallet.publicKey;
@@ -292,7 +311,7 @@ cli
   .description("List available tasks you can complete")
   .action(async () => {
     applyMockFlag();
-    const programClient = getProgram();
+    const programClient = await getProgram();
     const provider = programClient.provider as anchor.AnchorProvider;
     const wallet = provider.wallet as anchor.Wallet;
     const pubkey = wallet.publicKey;
@@ -405,7 +424,7 @@ cli
       process.exit(1);
     }
 
-    const programClient = getProgram();
+    const programClient = await getProgram();
     const provider = programClient.provider as anchor.AnchorProvider;
     const wallet = provider.wallet as anchor.Wallet;
     const pubkey = wallet.publicKey;

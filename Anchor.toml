@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-paperclip_protocol = "48Uno3JeYPopKegPsDFgQXptMxz1ZWjFAQij4oMZDSkq"
+paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
 
 [registry]
 url = "https://api.apr.dev"

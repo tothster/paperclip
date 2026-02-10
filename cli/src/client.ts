@@ -3,7 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { PROGRAM_ID, RPC_URL, WALLET_PATH } from "./config.js";
+import { PROGRAM_ID, RPC_URL, WALLET_PATH, WALLET_TYPE } from "./config.js";
+import { getPrivyWalletInstance } from "./privy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,7 @@ export function loadKeypair(filePath: string): Keypair {
   return Keypair.fromSecretKey(bytes);
 }
 
-export function getProvider(): anchor.AnchorProvider {
+export function getLocalProvider(): anchor.AnchorProvider {
   const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
   const keypair = loadKeypair(WALLET_PATH);
   const wallet = new anchor.Wallet(keypair);
@@ -28,8 +29,27 @@ export function getProvider(): anchor.AnchorProvider {
   });
 }
 
-export function getProgram(): anchor.Program<anchor.Idl> {
-  const provider = getProvider();
+export async function getProvider(): Promise<anchor.AnchorProvider> {
+  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
+
+  if (WALLET_TYPE === "privy") {
+    const privyWallet = await getPrivyWalletInstance();
+    return new anchor.AnchorProvider(
+      connection,
+      privyWallet as unknown as anchor.Wallet,
+      { commitment: "confirmed" }
+    );
+  }
+
+  const keypair = loadKeypair(WALLET_PATH);
+  const wallet = new anchor.Wallet(keypair);
+  return new anchor.AnchorProvider(connection, wallet, {
+    commitment: "confirmed",
+  });
+}
+
+export async function getProgram(): Promise<anchor.Program<anchor.Idl>> {
+  const provider = await getProvider();
   anchor.setProvider(provider);
 
   const idlPath = path.resolve(
