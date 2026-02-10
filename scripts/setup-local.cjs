@@ -8,11 +8,12 @@
  * 2. Syncs anchor keys
  * 3. Kills old validators
  * 4. Starts solana-test-validator
- * 5. Deploys program
- * 6. Runs Anchor tests (protocol state)
- * 7. Publishes tasks to Storacha
- * 8. Syncs program ID to CLI config
- * 9. Rebuilds CLI
+ * 5. Builds program
+ * 6. Deploys program
+ * 7. Runs Anchor tests (protocol state)
+ * 8. Publishes tasks to Storacha
+ * 9. Syncs program ID to CLI config
+ * 10. Rebuilds CLI
  */
 
 const { execSync, spawn } = require("child_process");
@@ -155,8 +156,19 @@ async function main() {
   }
   log.success("Validator is running at http://127.0.0.1:8899");
 
-  // Step 5: Deploy program
-  log.step(5, "Deploying program...");
+  // Step 5: Build program
+  log.step(5, "Building program...");
+  log.cmd("anchor build");
+  try {
+    execSync("anchor build", { cwd: rootDir, stdio: "inherit" });
+    log.success("Program built");
+  } catch (error) {
+    log.error(`Build failed: ${error.message}`);
+    process.exit(1);
+  }
+
+  // Step 6: Deploy program
+  log.step(6, "Deploying program...");
   log.cmd("anchor deploy");
   try {
     execSync("anchor deploy", { cwd: rootDir, stdio: "inherit" });
@@ -166,8 +178,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 6: Run Anchor tests (initializes protocol state)
-  log.step(6, "Running Anchor tests (sets up protocol state)...");
+  // Step 7: Run Anchor tests (initializes protocol state)
+  log.step(7, "Running Anchor tests (sets up protocol state)...");
   log.cmd("anchor test --skip-local-validator");
   try {
     execSync("anchor test --skip-local-validator", {
@@ -186,8 +198,8 @@ async function main() {
     }
   }
 
-  // Step 7: Publish tasks to Storacha
-  log.step(7, "Publishing tasks to Storacha...");
+  // Step 8: Publish tasks to Storacha
+  log.step(8, "Publishing tasks to Storacha...");
   log.cmd("npx tsx scripts/publish-task.ts");
   try {
     execSync("npx tsx publish-task.ts", { cwd: scriptsDir, stdio: "inherit" });
@@ -197,8 +209,8 @@ async function main() {
     log.info("You can retry later with: npm run publish:tasks");
   }
 
-  // Step 8: Sync program ID from lib.rs to CLI config
-  log.step(8, "Syncing program ID to CLI...");
+  // Step 9: Sync program ID from lib.rs to CLI config
+  log.step(9, "Syncing program ID to CLI...");
 
   try {
     const libRsPath = path.join(
@@ -244,8 +256,8 @@ async function main() {
     log.info("You may need to manually update cli/src/config.ts");
   }
 
-  // Step 9: Rebuild CLI
-  log.step(9, "Rebuilding CLI...");
+  // Step 10: Rebuild CLI
+  log.step(10, "Rebuilding CLI...");
   log.cmd("cd cli && npm run build");
   try {
     execSync("npm run build", { cwd: cliDir, stdio: "inherit" });
