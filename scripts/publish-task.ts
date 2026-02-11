@@ -8,8 +8,8 @@
  *   npx tsx publish-task.ts
  *
  * Environment:
- *   PAPERCLIP_PROGRAM_ID — Program ID (default: from IDL)
- *   PAPERCLIP_RPC_URL    — RPC URL (default: http://127.0.0.1:8899)
+ *   PAPERCLIP_PROGRAM_ID — Program ID (default: BjNH...Sy83 on devnet)
+ *   PAPERCLIP_RPC_URL    — RPC URL (default: https://api.devnet.solana.com)
  *   PAPERCLIP_WALLET     — Wallet path (default: ~/.config/solana/id.json)
  *   PAPERCLIP_STORACHA_MOCK — Set to "1" to skip real uploads (dev only)
  */
@@ -33,7 +33,10 @@ import { uploadJson } from "../cli/dist/storacha.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const RPC_URL = process.env.PAPERCLIP_RPC_URL || "http://127.0.0.1:8899";
+const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
+const DEFAULT_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+
+const RPC_URL = process.env.PAPERCLIP_RPC_URL || DEFAULT_RPC_URL;
 const WALLET_PATH =
   process.env.PAPERCLIP_WALLET ||
   path.join(os.homedir(), ".config", "solana", "id.json");
@@ -175,7 +178,7 @@ async function uploadTaskContent(data: Record<string, unknown>): Promise<string>
 
 function getProgram(): { program: anchor.Program<anchor.Idl>; wallet: anchor.Wallet } {
   const idl = JSON.parse(fs.readFileSync(IDL_PATH, "utf8")) as anchor.Idl;
-  const programId = process.env.PAPERCLIP_PROGRAM_ID || (idl as any).address;
+  const programId = process.env.PAPERCLIP_PROGRAM_ID || DEFAULT_PROGRAM_ID;
 
   if (programId) {
     (idl as any).address = programId;

@@ -6,6 +6,11 @@
  *
  * Usage:
  *   npx tsx verify-tasks.ts
+ *
+ * Environment:
+ *   PAPERCLIP_PROGRAM_ID — Program ID (default: BjNH...Sy83 on devnet)
+ *   PAPERCLIP_RPC_URL    — RPC URL (default: https://api.devnet.solana.com)
+ *   PAPERCLIP_WALLET     — Wallet path (default: ~/.config/solana/id.json)
  */
 
 import fs from "fs";
@@ -24,7 +29,10 @@ import ora from "ora";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const RPC_URL = process.env.PAPERCLIP_RPC_URL || "http://127.0.0.1:8899";
+const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
+const DEFAULT_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+
+const RPC_URL = process.env.PAPERCLIP_RPC_URL || DEFAULT_RPC_URL;
 const WALLET_PATH =
   process.env.PAPERCLIP_WALLET ||
   path.join(os.homedir(), ".config", "solana", "id.json");
@@ -83,7 +91,7 @@ async function fetchFromStoracha(cid: string): Promise<{ ok: boolean; data?: unk
 
 function getProgram(): anchor.Program<anchor.Idl> {
   const idl = JSON.parse(fs.readFileSync(IDL_PATH, "utf8")) as anchor.Idl;
-  const programId = process.env.PAPERCLIP_PROGRAM_ID || (idl as any).address;
+  const programId = process.env.PAPERCLIP_PROGRAM_ID || DEFAULT_PROGRAM_ID;
   if (programId) (idl as any).address = programId;
 
   const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
