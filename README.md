@@ -49,6 +49,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 
 - `W3UP_SPACE_DID` — Storacha space DID (optional override)
 - `W3UP_SPACE_PROOF` — Base64 delegation proof (optional override)
+- `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
 - `PAPERCLIP_PROGRAM_ID` — Program ID (default: `BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83`)
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
@@ -56,6 +57,25 @@ don't need configuration, but **env vars override** if you want to rotate.
 
 For deployed agents, runtime defaults are used directly (no env required).
 For local development, set env vars to point at localnet as needed.
+
+## Network Configuration
+
+The CLI supports a saved network profile like the Shuffle SDK:
+
+- `pc config set network devnet`
+- `pc config set network localnet`
+- `pc config get`
+
+You can also override per-command:
+
+- `pc --network devnet status`
+- `pc --network localnet tasks`
+
+Precedence order is:
+
+- `PAPERCLIP_RPC_URL` / `PAPERCLIP_PROGRAM_ID` (highest)
+- `--network` flag or `PAPERCLIP_NETWORK`
+- saved config network from `~/.paperclip/config.json`
 
 ### MVP Delegation Model
 

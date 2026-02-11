@@ -14,9 +14,11 @@ import os from "os";
 // =============================================================================
 
 export type CliMode = "agent" | "human";
+export type PaperclipNetwork = "devnet" | "localnet";
 
 export interface PaperclipSettings {
   mode: CliMode;
+  network: PaperclipNetwork;
   privyWalletId?: string;
   privyWalletAddress?: string;
 }
@@ -34,6 +36,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 const DEFAULTS: PaperclipSettings = {
   mode: "agent",
+  network: "devnet",
 };
 
 // =============================================================================
@@ -66,6 +69,16 @@ export function getMode(): CliMode {
 export function setMode(mode: CliMode): void {
   const settings = loadSettings();
   settings.mode = mode;
+  saveSettings(settings);
+}
+
+export function getNetwork(): PaperclipNetwork {
+  return loadSettings().network;
+}
+
+export function setNetwork(network: PaperclipNetwork): void {
+  const settings = loadSettings();
+  settings.network = network;
   saveSettings(settings);
 }
 

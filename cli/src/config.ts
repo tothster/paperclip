@@ -1,12 +1,46 @@
 import os from "os";
 import path from "path";
 import { PublicKey } from "@solana/web3.js";
+import { getNetwork, type PaperclipNetwork } from "./settings.js";
 
-export const RPC_URL = process.env.PAPERCLIP_RPC_URL || "https://api.devnet.solana.com";
+const DEVNET_RPC_URL = "https://api.devnet.solana.com";
+const LOCALNET_RPC_URL = "http://127.0.0.1:8899";
+const DEVNET_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+const LOCALNET_PROGRAM_ID = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo";
+
+function parseNetwork(value: string | undefined): PaperclipNetwork | undefined {
+  const normalized = value?.toLowerCase().trim();
+  if (normalized === "devnet" || normalized === "localnet") {
+    return normalized;
+  }
+  return undefined;
+}
+
+function networkFromArgv(argv: string[]): PaperclipNetwork | undefined {
+  const longIdx = argv.indexOf("--network");
+  if (longIdx !== -1) {
+    return parseNetwork(argv[longIdx + 1]);
+  }
+  const shortIdx = argv.indexOf("-n");
+  if (shortIdx !== -1) {
+    return parseNetwork(argv[shortIdx + 1]);
+  }
+  return undefined;
+}
+
+export const NETWORK: PaperclipNetwork =
+  networkFromArgv(process.argv) ||
+  parseNetwork(process.env.PAPERCLIP_NETWORK) ||
+  getNetwork();
+
+const NETWORK_RPC_URL = NETWORK === "localnet" ? LOCALNET_RPC_URL : DEVNET_RPC_URL;
+const NETWORK_PROGRAM_ID =
+  NETWORK === "localnet" ? LOCALNET_PROGRAM_ID : DEVNET_PROGRAM_ID;
+
+export const RPC_URL = process.env.PAPERCLIP_RPC_URL || NETWORK_RPC_URL;
 
 export const PROGRAM_ID = new PublicKey(
-  process.env.PAPERCLIP_PROGRAM_ID ||
-    "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83"
+  process.env.PAPERCLIP_PROGRAM_ID || NETWORK_PROGRAM_ID
 );
 
 export const WALLET_PATH =

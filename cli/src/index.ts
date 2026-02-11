@@ -19,8 +19,16 @@ import {
 } from "./client.js";
 import { fetchJson, uploadJson } from "./storacha.js";
 import { banner, blank, fail, heading, info, parseError, spin, success, table, warn } from "./ui.js";
-import { getMode, setMode, configPath, type CliMode } from "./settings.js";
-import { WALLET_TYPE } from "./config.js";
+import {
+  getMode,
+  getNetwork,
+  setMode,
+  setNetwork,
+  configPath,
+  type CliMode,
+  type PaperclipNetwork,
+} from "./settings.js";
+import { NETWORK, PROGRAM_ID, RPC_URL, WALLET_TYPE } from "./config.js";
 import { provisionPrivyWallet } from "./privy.js";
 import type { AgentState, TaskInfo } from "./types.js";
 
@@ -94,9 +102,18 @@ cli
   .name("pc")
   .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
   .version("0.1.0")
+  .option("-n, --network <network>", "Network to use (devnet|localnet)")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")
   .option("--mock-storacha", "Use mock Storacha uploads (test only)");
+
+function normalizeNetwork(value: string): PaperclipNetwork | null {
+  const normalized = value.toLowerCase().trim();
+  if (normalized === "devnet" || normalized === "localnet") {
+    return normalized;
+  }
+  return null;
+}
 
 function isJsonMode(): boolean {
   // Explicit flags override saved config
@@ -111,6 +128,23 @@ function applyMockFlag() {
     process.env.PAPERCLIP_STORACHA_MOCK = "1";
   }
 }
+
+function validateNetworkFlag(): void {
+  const requested = cli.opts().network;
+  if (!requested) return;
+  if (normalizeNetwork(requested) !== null) return;
+
+  if (isJsonMode()) {
+    jsonOutput({ ok: false, error: 'Network must be "devnet" or "localnet"' });
+  } else {
+    fail('Network must be "devnet" or "localnet"');
+  }
+  process.exit(1);
+}
+
+cli.hook("preAction", () => {
+  validateNetworkFlag();
+});
 
 // =============================================================================
 // INIT COMMAND
@@ -551,20 +585,145 @@ cli
 // CONFIG COMMAND
 // =============================================================================
 
-cli
+const configCmd = cli
   .command("config")
-  .description("Show current configuration")
-  .action(() => {
-    const mode = getMode();
+  .description("Show or manage configuration");
+
+configCmd.action(() => {
+  const mode = getMode();
+  const savedNetwork = getNetwork();
+  if (isJsonMode()) {
+    jsonOutput({
+      mode,
+      network: NETWORK,
+      saved_network: savedNetwork,
+      rpc_url: RPC_URL,
+      program_id: PROGRAM_ID.toBase58(),
+      config_path: configPath(),
+    });
+  } else {
+    banner();
+    heading("Configuration");
+    info("🔧 Mode:", mode);
+    info("🌐 Network:", NETWORK);
+    info("📝 Saved network:", savedNetwork);
+    info("🔗 RPC:", RPC_URL);
+    info("🧾 Program:", PROGRAM_ID.toBase58());
+    info("📁 Config:", configPath());
+    blank();
+  }
+});
+
+configCmd
+  .command("get [key]")
+  .description("Get a config value or show all config")
+  .action((key?: string) => {
+    const values = {
+      mode: getMode(),
+      network: getNetwork(),
+      effective_network: NETWORK,
+      rpc_url: RPC_URL,
+      program_id: PROGRAM_ID.toBase58(),
+      config_path: configPath(),
+    };
+
+    if (!key) {
+      if (isJsonMode()) {
+        jsonOutput(values);
+      } else {
+        banner();
+        heading("Configuration");
+        info("🔧 Mode:", values.mode);
+        info("📝 Saved network:", values.network);
+        info("🌐 Effective network:", values.effective_network);
+        info("🔗 RPC:", values.rpc_url);
+        info("🧾 Program:", values.program_id);
+        info("📁 Config:", values.config_path);
+        blank();
+      }
+      return;
+    }
+
+    const normalized = key.toLowerCase().trim();
+    if (!(normalized in values)) {
+      if (isJsonMode()) {
+        jsonOutput({
+          ok: false,
+          error:
+            'Unknown key. Valid keys: mode, network, effective_network, rpc_url, program_id, config_path',
+        });
+      } else {
+        fail(
+          'Unknown key. Valid keys: mode, network, effective_network, rpc_url, program_id, config_path'
+        );
+      }
+      process.exit(1);
+    }
+
+    const resolvedValue = (values as Record<string, string>)[normalized];
     if (isJsonMode()) {
-      jsonOutput({ mode, config_path: configPath() });
+      jsonOutput({ key: normalized, value: resolvedValue });
     } else {
       banner();
       heading("Configuration");
-      info("🔧 Mode:", mode);
-      info("📁 Config:", configPath());
+      info(`🔧 ${normalized}:`, resolvedValue);
       blank();
     }
+  });
+
+configCmd
+  .command("set <key> <value>")
+  .description("Set a config value (supported: mode, network)")
+  .action((key: string, value: string) => {
+    const normalizedKey = key.toLowerCase().trim();
+    const normalizedValue = value.toLowerCase().trim();
+
+    if (normalizedKey === "mode") {
+      if (normalizedValue !== "agent" && normalizedValue !== "human") {
+        if (isJsonMode()) {
+          jsonOutput({ ok: false, error: 'Mode must be "agent" or "human"' });
+        } else {
+          fail('Mode must be "agent" or "human"');
+        }
+        process.exit(1);
+      }
+      setMode(normalizedValue as CliMode);
+      if (isJsonMode()) {
+        jsonOutput({ ok: true, key: "mode", value: normalizedValue });
+      } else {
+        banner();
+        success(`Set mode = ${normalizedValue}`);
+        blank();
+      }
+      return;
+    }
+
+    if (normalizedKey === "network") {
+      if (normalizedValue !== "devnet" && normalizedValue !== "localnet") {
+        if (isJsonMode()) {
+          jsonOutput({ ok: false, error: 'Network must be "devnet" or "localnet"' });
+        } else {
+          fail('Network must be "devnet" or "localnet"');
+        }
+        process.exit(1);
+      }
+      setNetwork(normalizedValue as PaperclipNetwork);
+      if (isJsonMode()) {
+        jsonOutput({ ok: true, key: "network", value: normalizedValue });
+      } else {
+        banner();
+        success(`Set network = ${normalizedValue}`);
+        blank();
+      }
+      return;
+    }
+
+    if (isJsonMode()) {
+      jsonOutput({ ok: false, error: 'Unsupported key. Use "mode" or "network"' });
+    } else {
+      fail('Unsupported key. Use "mode" or "network"');
+    }
+    process.exit(1);
   });
 
 // =============================================================================
