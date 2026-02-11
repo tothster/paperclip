@@ -2,11 +2,11 @@ import os from "os";
 import path from "path";
 import { PublicKey } from "@solana/web3.js";
 
-export const RPC_URL = process.env.PAPERCLIP_RPC_URL || "http://127.0.0.1:8899";
+export const RPC_URL = process.env.PAPERCLIP_RPC_URL || "https://api.devnet.solana.com";
 
 export const PROGRAM_ID = new PublicKey(
   process.env.PAPERCLIP_PROGRAM_ID ||
-    "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
+    "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83"
 );
 
 export const WALLET_PATH =

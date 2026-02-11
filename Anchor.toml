@@ -6,6 +6,9 @@ package_manager = "npm"
 resolution = true
 skip-lint = false
 
+[programs.devnet]
+paperclip_protocol = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83"
+
 [programs.localnet]
 paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
 
@@ -13,7 +16,7 @@ paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
