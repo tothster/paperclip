@@ -23,6 +23,8 @@ npm install
 npm run build
 ```
 
+`npm run build` bakes values from repo `.env` into `cli/baked-config.json` so packaged agents can run without shell exports.
+
 3. Configure env vars (see `.env.example`), then run:
 
 ```bash
@@ -55,7 +57,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
 - `STORACHA_GATEWAY_URL` — IPFS gateway (default: `https://w3s.link/ipfs/`)
 
-For deployed agents, runtime defaults are used directly (no env required).
+For deployed agents, baked runtime defaults are used directly (no env required).
 For local development, set env vars to point at localnet as needed.
 
 ## Network Configuration

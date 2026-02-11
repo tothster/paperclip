@@ -61,10 +61,7 @@ export function blank() {
 // TABLE
 // =============================================================================
 
-export function table(
-  headers: string[],
-  rows: (string | number)[][],
-) {
+export function table(headers: string[], rows: (string | number)[][]) {
   const widths = headers.map((h, i) =>
     Math.max(h.length, ...rows.map((r) => String(r[i] ?? "").length))
   );
@@ -77,13 +74,17 @@ export function table(
     r.map((c, i) => ` ${String(c).padEnd(widths[i])} `).join("│")
   );
 
-  console.log(`  ${chalk.dim("┌" + widths.map((w) => "─".repeat(w + 2)).join("┬") + "┐")}`);
+  console.log(
+    `  ${chalk.dim("┌" + widths.map((w) => "─".repeat(w + 2)).join("┬") + "┐")}`
+  );
   console.log(`  ${chalk.dim("│")}${headerRow}${chalk.dim("│")}`);
   console.log(`  ${chalk.dim("├" + sep + "┤")}`);
   for (const row of dataRows) {
     console.log(`  ${chalk.dim("│")}${row}${chalk.dim("│")}`);
   }
-  console.log(`  ${chalk.dim("└" + widths.map((w) => "─".repeat(w + 2)).join("┴") + "┘")}`);
+  console.log(
+    `  ${chalk.dim("└" + widths.map((w) => "─".repeat(w + 2)).join("┴") + "┘")}`
+  );
 }
 
 // =============================================================================
@@ -101,16 +102,22 @@ const PROGRAM_ERRORS: Record<number, string> = {
 /** System-level Solana errors */
 const SYSTEM_ERRORS: Record<string, string> = {
   "already in use": "Account already exists — you may already be registered",
-  "insufficient funds": "Not enough SOL in your wallet to pay for the transaction",
-  "AccountNotFound": "Account not found on-chain",
+  "insufficient funds":
+    "Not enough SOL in your wallet to pay for the transaction",
+  AccountNotFound: "Account not found on-chain",
 };
 
 /**
  * Parse a raw Anchor/Solana error into a human-readable message.
  */
 export function parseError(err: unknown): string {
-  const msg =
-    err instanceof Error ? err.message : String(err);
+  const msg = err instanceof Error ? err.message : String(err);
+
+  const maybeLogs = (err as any)?.logs || (err as any)?.transactionLogs;
+  if (Array.isArray(maybeLogs) && maybeLogs.length > 0) {
+    const tail = maybeLogs.slice(-3).join(" | ");
+    return `${msg} Logs: ${tail}`;
+  }
 
   // Check program errors (custom error code)
   const codeMatch = msg.match(/custom program error: 0x([0-9a-fA-F]+)/);

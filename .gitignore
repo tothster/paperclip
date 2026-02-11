@@ -4,5 +4,6 @@ target
 **/*.rs.bk
 node_modules
 cli/dist
+cli/baked-config.json
 test-ledger
 .yarn

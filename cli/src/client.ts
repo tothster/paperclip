@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { PROGRAM_ID, RPC_URL, WALLET_PATH, WALLET_TYPE } from "./config.js";
-import { getPrivyWalletInstance } from "./privy.js";
+import { getPrivyWalletInstance, PrivyAnchorProvider } from "./privy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,11 +35,9 @@ export async function getProvider(): Promise<anchor.AnchorProvider> {
 
   if (WALLET_TYPE === "privy") {
     const privyWallet = await getPrivyWalletInstance();
-    return new anchor.AnchorProvider(
-      connection,
-      privyWallet as unknown as anchor.Wallet,
-      { commitment: "confirmed" }
-    );
+    return new PrivyAnchorProvider(connection, privyWallet, {
+      commitment: "confirmed",
+    });
   }
 
   const keypair = loadKeypair(WALLET_PATH);

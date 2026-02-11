@@ -1,6 +1,6 @@
 # Paperclip Protocol — Progress
 
-Last updated: 2026-02-10
+Last updated: 2026-02-11
 
 ---
 
@@ -73,15 +73,15 @@ Last updated: 2026-02-10
 
 ## Phase 5.5 — Privy Testing & Configuration
 
-- [ ] Create Privy app in Privy dashboard (https://dashboard.privy.io)
-- [ ] Configure server wallet settings (Solana chain support)
-- [ ] Set `PRIVY_APP_ID` and `PRIVY_APP_SECRET` in `.env`
-- [ ] Test `pc init` with Privy wallet signing (register agent via server wallet)
-- [ ] Test `pc do` with Privy wallet signing (submit proof)
-- [ ] Verify Privy → Solana TX signature flow end-to-end on devnet
-- [ ] Test fallback: ensure local keypair still works when Privy is not configured
-- [ ] Update `.env.example` with Privy vars
-- [ ] Document any dashboard settings or gotchas in `PRIVY_SETUP.md`
+- [x] Create Privy app in Privy dashboard (https://dashboard.privy.io)
+- [x] Configure server wallet settings (Solana chain support)
+- [x] Set `PRIVY_APP_ID` and `PRIVY_APP_SECRET` in `.env`
+- [x] Test `pc init` with Privy wallet signing (register agent via server wallet)
+- [x] Test `pc do` with Privy wallet signing (submit proof)
+- [x] Verify Privy → Solana TX signature flow end-to-end on devnet
+- [x] Test fallback: ensure local keypair still works when Privy is not configured
+- [x] Update `.env.example` with Privy vars
+- [x] Document any dashboard settings or gotchas in `PRIVY_SETUP.md`
 
 ---
 

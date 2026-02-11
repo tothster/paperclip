@@ -11,14 +11,19 @@
 
 import * as anchor from "@coral-xyz/anchor";
 import {
+  type ConfirmOptions,
+  type Signer,
+  type TransactionSignature,
+  Connection,
   PublicKey,
   Transaction,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { PRIVY_APP_ID, PRIVY_APP_SECRET } from "./config.js";
-import { loadSettings, saveSettings, loadSettings as getSettings } from "./settings.js";
+import { NETWORK, PRIVY_APP_ID, PRIVY_APP_SECRET } from "./config.js";
+import { loadSettings, saveSettings } from "./settings.js";
 
 const PRIVY_API_BASE = "https://api.privy.io/v1";
+const DUMMY_RECENT_BLOCKHASH = "11111111111111111111111111111111";
 
 // ---------------------------------------------------------------------------
 // HTTP helpers
@@ -35,22 +40,56 @@ function authHeaders(): Record<string, string> {
   };
 }
 
-async function privyFetch(
-  path: string,
-  init: RequestInit = {}
-): Promise<any> {
+async function privyFetch(path: string, init: RequestInit = {}): Promise<any> {
   const url = `${PRIVY_API_BASE}${path}`;
-  const headers = { ...authHeaders(), ...(init.headers as Record<string, string> || {}) };
+  const headers = {
+    ...authHeaders(),
+    ...((init.headers as Record<string, string>) || {}),
+  };
   const res = await fetch(url, { ...init, headers });
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(
-      `Privy API error ${res.status} on ${init.method || "GET"} ${path}: ${body}`
+      `Privy API error ${res.status} on ${
+        init.method || "GET"
+      } ${path}: ${body}`
     );
   }
 
   return res.json();
+}
+
+function networkToCaip2(network: string): string {
+  if (network === "devnet") {
+    return "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
+  }
+  if (network === "testnet") {
+    return "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z";
+  }
+  if (network === "mainnet") {
+    return "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+  }
+  throw new Error(
+    `Privy gas sponsorship is not supported for network "${network}". Use devnet/mainnet.`
+  );
+}
+
+function extractTxHash(response: any): string {
+  const hash =
+    response?.data?.hash ||
+    response?.data?.signature ||
+    response?.hash ||
+    response?.signature;
+
+  if (typeof hash !== "string" || hash.length === 0) {
+    throw new Error(
+      `Invalid Privy signAndSendTransaction response: ${JSON.stringify(
+        response
+      )}`
+    );
+  }
+  return hash;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +117,9 @@ export async function createPrivyWallet(): Promise<PrivyWalletInfo> {
 /**
  * Get an existing wallet's info from Privy.
  */
-export async function getPrivyWalletInfo(walletId: string): Promise<PrivyWalletInfo> {
+export async function getPrivyWalletInfo(
+  walletId: string
+): Promise<PrivyWalletInfo> {
   const data = await privyFetch(`/wallets/${walletId}`);
   return { id: data.id, address: data.address };
 }
@@ -102,6 +143,10 @@ export class PrivyWallet {
   constructor(walletId: string, publicKey: PublicKey) {
     this.walletId = walletId;
     this.publicKey = publicKey;
+  }
+
+  get id(): string {
+    return this.walletId;
   }
 
   async signTransaction<T extends Transaction | VersionedTransaction>(
@@ -141,6 +186,124 @@ export class PrivyWallet {
   }
 }
 
+async function signAndSendSponsoredTransaction(
+  walletId: string,
+  txBase64: string
+): Promise<string> {
+  const caip2 = networkToCaip2(NETWORK);
+  const data = await privyFetch(`/wallets/${walletId}/rpc`, {
+    method: "POST",
+    body: JSON.stringify({
+      method: "signAndSendTransaction",
+      caip2,
+      sponsor: true,
+      params: {
+        transaction: txBase64,
+        encoding: "base64",
+      },
+    }),
+  });
+  return extractTxHash(data);
+}
+
+function toBase64Transaction(tx: Transaction | VersionedTransaction): string {
+  if (tx instanceof VersionedTransaction) {
+    return Buffer.from(tx.serialize()).toString("base64");
+  }
+
+  // Privy signs this transaction server-side, so it may be missing wallet sig.
+  const raw = tx.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+  });
+  return Buffer.from(raw).toString("base64");
+}
+
+/**
+ * Provider wrapper that routes Privy transactions through signAndSendTransaction
+ * with sponsorship enabled.
+ */
+export class PrivyAnchorProvider extends anchor.AnchorProvider {
+  private readonly privyWallet: PrivyWallet;
+
+  constructor(
+    connection: Connection,
+    wallet: PrivyWallet,
+    opts: ConfirmOptions = anchor.AnchorProvider.defaultOptions()
+  ) {
+    super(connection, wallet as unknown as anchor.Wallet, opts);
+    this.privyWallet = wallet;
+  }
+
+  private prepareTx(
+    tx: Transaction | VersionedTransaction,
+    signers?: Signer[]
+  ): Transaction | VersionedTransaction {
+    if (tx instanceof VersionedTransaction) {
+      if (signers && signers.length > 0) {
+        tx.sign(signers);
+      }
+      // Privy fills the real recent blockhash when processing signAndSend.
+      (tx.message as any).recentBlockhash = DUMMY_RECENT_BLOCKHASH;
+      return tx;
+    }
+
+    tx.feePayer = tx.feePayer ?? this.wallet.publicKey;
+    tx.recentBlockhash = DUMMY_RECENT_BLOCKHASH;
+
+    if (signers && signers.length > 0) {
+      for (const signer of signers) {
+        tx.partialSign(signer);
+      }
+    }
+    return tx;
+  }
+
+  async sendAndConfirm(
+    tx: Transaction | VersionedTransaction,
+    signers: Signer[] = [],
+    opts?: ConfirmOptions
+  ): Promise<TransactionSignature> {
+    // Keep localnet behavior unchanged (no Privy sponsorship path there).
+    if (NETWORK === "localnet") {
+      return super.sendAndConfirm(tx, signers, opts as any);
+    }
+
+    const prepared = this.prepareTx(tx, signers);
+    const txBase64 = toBase64Transaction(prepared);
+    const signature = await signAndSendSponsoredTransaction(
+      this.privyWallet.id,
+      txBase64
+    );
+
+    const commitment = opts?.commitment ?? this.opts.commitment ?? "confirmed";
+    const status = await this.connection.confirmTransaction(
+      signature,
+      commitment
+    );
+    if (status.value.err) {
+      throw new Error(
+        `Privy sponsored transaction ${signature} failed: ${JSON.stringify(
+          status.value.err
+        )}`
+      );
+    }
+
+    return signature;
+  }
+
+  async sendAll<T extends Transaction | VersionedTransaction>(
+    txWithSigners: { tx: T; signers?: Signer[] }[],
+    opts?: ConfirmOptions
+  ): Promise<TransactionSignature[]> {
+    const out: TransactionSignature[] = [];
+    for (const item of txWithSigners) {
+      out.push(await this.sendAndConfirm(item.tx, item.signers ?? [], opts));
+    }
+    return out;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Cached instance — getPrivyWalletInstance()
 // ---------------------------------------------------------------------------
@@ -160,9 +323,7 @@ export async function getPrivyWalletInstance(): Promise<PrivyWallet> {
   const walletAddress = settings.privyWalletAddress;
 
   if (!walletId || !walletAddress) {
-    throw new Error(
-      "No Privy wallet found. Run `pc init` to create one."
-    );
+    throw new Error("No Privy wallet found. Run `pc init` to create one.");
   }
 
   _cachedWallet = new PrivyWallet(walletId, new PublicKey(walletAddress));

@@ -155,16 +155,6 @@ cli
   .description("Register as an agent on the protocol")
   .action(async () => {
     applyMockFlag();
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
-
-    if (!isJsonMode()) {
-      banner();
-      info("👤 Wallet:", pubkey.toBase58());
-      blank();
-    }
 
     // If using Privy, auto-provision wallet on first init
     if (WALLET_TYPE === "privy") {
@@ -182,6 +172,17 @@ cli
         }
         process.exit(1);
       }
+    }
+
+    const programClient = await getProgram();
+    const provider = programClient.provider as anchor.AnchorProvider;
+    const wallet = provider.wallet as anchor.Wallet;
+    const pubkey = wallet.publicKey;
+
+    if (!isJsonMode()) {
+      banner();
+      info("👤 Wallet:", pubkey.toBase58());
+      blank();
     }
 
     // Check if already registered

@@ -26,17 +26,34 @@ This ensures agent wallets can ONLY interact with the Paperclip Protocol program
 
 ## 3. Bake Credentials Into the CLI
 
-Edit `cli/src/config.ts`:
+Set values in repo `.env` (or `cli/.env`):
 
-```typescript
-const DEFAULT_PRIVY_APP_ID = "your-app-id-here";
-const DEFAULT_PRIVY_APP_SECRET = "your-app-secret-here";
+```bash
+PAPERCLIP_WALLET_TYPE=privy
+PRIVY_APP_ID=your-app-id-here
+PRIVY_APP_SECRET=your-app-secret-here
 ```
 
-Once these are populated, the CLI will automatically:
+Build the CLI (this bakes values into `cli/baked-config.json`):
+
+```bash
+cd cli
+npm run build
+```
+
+Once baked, the CLI will automatically:
+
 - Use Privy for all wallet operations (`WALLET_TYPE` defaults to `"privy"`)
 - Create a new Solana wallet for each agent on `pc init`
 - Sign transactions server-side via Privy's API
+
+## 3.5 Enable Gas Sponsorship in Privy
+
+1. In Privy dashboard, open **Gas sponsorship**.
+2. Toggle sponsorship ON.
+3. Select **Solana devnet** network.
+4. Save changes.
+5. Ensure app is configured for **TEE execution mode** (required by Privy sponsorship flow).
 
 ## 4. Testing
 
@@ -44,7 +61,7 @@ Once these are populated, the CLI will automatically:
 # Build the CLI
 cd cli && npm run build
 
-# Test with Privy (credentials baked in)
+# Test with Privy sponsored transactions
 node dist/index.js init     # Creates wallet + registers agent
 node dist/index.js status   # Shows agent status
 node dist/index.js tasks    # Lists available tasks
@@ -64,8 +81,8 @@ Agent runs `pc init`
 Agent runs `pc do <task_id> --proof '{...}'`
     → CLI loads wallet ID from config.json
     → Builds transaction locally
-    → Sends to Privy for signing (REST API)
-    → Broadcasts signed TX to Solana
+    → Sends to Privy signAndSendTransaction with sponsor=true
+    → Privy signs + sponsors + broadcasts TX to Solana
 ```
 
 ## Cost
