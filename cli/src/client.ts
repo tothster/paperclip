@@ -13,6 +13,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
+const IDL_FILENAME = "paperclip_protocol.json";
 
 export function loadKeypair(filePath: string): Keypair {
   const raw = fs.readFileSync(filePath, "utf8");
@@ -52,14 +53,25 @@ export async function getProgram(): Promise<anchor.Program<anchor.Idl>> {
   const provider = await getProvider();
   anchor.setProvider(provider);
 
-  const idlPath = path.resolve(
+  const packagedIdlPath = path.resolve(__dirname, "..", "idl", IDL_FILENAME);
+  const workspaceIdlPath = path.resolve(
     __dirname,
     "..",
     "..",
     "target",
     "idl",
-    "paperclip_protocol.json"
+    IDL_FILENAME
   );
+  const idlPath = fs.existsSync(packagedIdlPath)
+    ? packagedIdlPath
+    : workspaceIdlPath;
+
+  if (!fs.existsSync(idlPath)) {
+    throw new Error(
+      `IDL not found. Looked in: ${packagedIdlPath} and ${workspaceIdlPath}`
+    );
+  }
+
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8")) as anchor.Idl;
   // Override address with env-configurable PROGRAM_ID
   (idl as any).address = PROGRAM_ID.toBase58();

@@ -1,0 +1,602 @@
+{
+  "address": "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83",
+  "metadata": {
+    "name": "paperclip_protocol",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "create_task",
+      "discriminator": [
+        194,
+        80,
+        6,
+        180,
+        232,
+        127,
+        48,
+        171
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "task_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "task_id",
+          "type": "u32"
+        },
+        {
+          "name": "title",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "content_cid",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "reward_clips",
+          "type": "u64"
+        },
+        {
+          "name": "max_claims",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "base_reward_unit",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "register_agent",
+      "discriminator": [
+        135,
+        157,
+        66,
+        195,
+        2,
+        113,
+        175,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "submit_proof",
+      "discriminator": [
+        54,
+        241,
+        46,
+        84,
+        4,
+        212,
+        46,
+        94
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "task_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "claim",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  108,
+                  97,
+                  105,
+                  109
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "task_id"
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "task_id",
+          "type": "u32"
+        },
+        {
+          "name": "proof_cid",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "AgentAccount",
+      "discriminator": [
+        241,
+        119,
+        69,
+        140,
+        233,
+        9,
+        112,
+        50
+      ]
+    },
+    {
+      "name": "ClaimRecord",
+      "discriminator": [
+        57,
+        229,
+        0,
+        9,
+        65,
+        62,
+        96,
+        7
+      ]
+    },
+    {
+      "name": "ProtocolState",
+      "discriminator": [
+        33,
+        51,
+        173,
+        134,
+        35,
+        140,
+        195,
+        248
+      ]
+    },
+    {
+      "name": "TaskRecord",
+      "discriminator": [
+        62,
+        42,
+        105,
+        214,
+        9,
+        85,
+        60,
+        158
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6001,
+      "name": "TaskInactive",
+      "msg": "Task is not active"
+    },
+    {
+      "code": 6002,
+      "name": "TaskFullyClaimed",
+      "msg": "Task is fully claimed"
+    },
+    {
+      "code": 6003,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "AgentAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "clips_balance",
+            "type": "u64"
+          },
+          {
+            "name": "efficiency_tier",
+            "type": "u8"
+          },
+          {
+            "name": "tasks_completed",
+            "type": "u32"
+          },
+          {
+            "name": "registered_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_active_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ClaimRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "task_id",
+            "type": "u32"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "proof_cid",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "clips_awarded",
+            "type": "u64"
+          },
+          {
+            "name": "completed_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "base_reward_unit",
+            "type": "u64"
+          },
+          {
+            "name": "total_agents",
+            "type": "u32"
+          },
+          {
+            "name": "total_tasks",
+            "type": "u32"
+          },
+          {
+            "name": "total_clips_distributed",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TaskRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "task_id",
+            "type": "u32"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "content_cid",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "reward_clips",
+            "type": "u64"
+          },
+          {
+            "name": "max_claims",
+            "type": "u16"
+          },
+          {
+            "name": "current_claims",
+            "type": "u16"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
