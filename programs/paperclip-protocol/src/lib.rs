@@ -30,8 +30,19 @@ pub mod paperclip_protocol {
         content_cid: [u8; 64],
         reward_clips: u64,
         max_claims: u16,
+        min_tier: u8,
+        required_task_id: u32,
     ) -> Result<()> {
-        create_task::handler(ctx, task_id, title, content_cid, reward_clips, max_claims)
+        create_task::handler(
+            ctx,
+            task_id,
+            title,
+            content_cid,
+            reward_clips,
+            max_claims,
+            min_tier,
+            required_task_id,
+        )
     }
 
     pub fn submit_proof(

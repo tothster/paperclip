@@ -102,6 +102,14 @@
         {
           "name": "max_claims",
           "type": "u16"
+        },
+        {
+          "name": "min_tier",
+          "type": "u8"
+        },
+        {
+          "name": "required_task_id",
+          "type": "u32"
         }
       ]
     },
@@ -428,6 +436,26 @@
       "code": 6003,
       "name": "MathOverflow",
       "msg": "Math overflow"
+    },
+    {
+      "code": 6004,
+      "name": "TierTooLow",
+      "msg": "Agent tier is too low for this task"
+    },
+    {
+      "code": 6005,
+      "name": "MissingRequiredTaskProof",
+      "msg": "Required prerequisite task has not been completed"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidPrerequisiteAccount",
+      "msg": "Invalid prerequisite account provided"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidTaskPrerequisite",
+      "msg": "Task cannot require itself as a prerequisite"
     }
   ],
   "types": [
@@ -594,6 +622,14 @@
           {
             "name": "created_at",
             "type": "i64"
+          },
+          {
+            "name": "min_tier",
+            "type": "u8"
+          },
+          {
+            "name": "required_task_id",
+            "type": "u32"
           }
         ]
       }

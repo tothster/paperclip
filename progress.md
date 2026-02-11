@@ -103,6 +103,7 @@ Last updated: 2026-02-11
   - [ ] Technical tasks: build with SDK, deploy contracts, integrate CLI
   - [ ] Community tasks: recruit agents, review proofs, create tutorials
   - [ ] Lore tasks: protocol worldbuilding, narrative content
+- [ ] Migrate `/tasks` catalog JSON to gating schema (`min_tier`, `required_task_id`) and republish via `scripts/publish-task.ts`
 - [ ] Seed tasks on-chain via `scripts/publish-task.ts`
 - [ ] End-to-end manual tests (localnet + devnet)
 - [ ] Devnet deploy + config (program ID + RPC)

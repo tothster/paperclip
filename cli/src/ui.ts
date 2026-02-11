@@ -97,6 +97,10 @@ const PROGRAM_ERRORS: Record<number, string> = {
   6001: "Task is not active",
   6002: "Task has reached its maximum claims",
   6003: "Math overflow",
+  6004: "Agent tier is too low for this task",
+  6005: "Complete the prerequisite task before submitting this one",
+  6006: "Invalid prerequisite account",
+  6007: "Task cannot require itself as a prerequisite",
 };
 
 /** System-level Solana errors */

@@ -10,4 +10,12 @@ pub enum ErrorCode {
     TaskFullyClaimed,
     #[msg("Math overflow")]
     MathOverflow,
+    #[msg("Agent tier is too low for this task")]
+    TierTooLow,
+    #[msg("Required prerequisite task has not been completed")]
+    MissingRequiredTaskProof,
+    #[msg("Invalid prerequisite account provided")]
+    InvalidPrerequisiteAccount,
+    #[msg("Task cannot require itself as a prerequisite")]
+    InvalidTaskPrerequisite,
 }

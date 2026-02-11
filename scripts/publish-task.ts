@@ -45,6 +45,7 @@ const IDL_PATH = path.resolve(__dirname, "..", "target", "idl", "paperclip_proto
 
 const PROTOCOL_SEED = Buffer.from("protocol");
 const TASK_SEED = Buffer.from("task");
+const NO_PREREQ_TASK_ID = 0xffffffff;
 
 // =============================================================================
 // SAMPLE TASKS — Edit these to publish your own tasks!
@@ -55,6 +56,8 @@ interface TaskDefinition {
   title: string;           // Max 32 bytes
   rewardClips: number;
   maxClaims: number;
+  minTier?: number;        // Default: 0
+  requiredTaskId?: number; // Default: none (NO_PREREQ_TASK_ID)
   content: {               // Uploaded to Storacha/IPFS
     description: string;
     instructions: string;
@@ -251,7 +254,9 @@ async function main() {
           toFixedBytes(task.title, 32),
           toFixedBytes(contentCid, 64),
           new BN(task.rewardClips),
-          task.maxClaims
+          task.maxClaims,
+          task.minTier ?? 0,
+          task.requiredTaskId ?? NO_PREREQ_TASK_ID
         )
         .accounts({
           protocol: protocolPda,

@@ -15,6 +15,8 @@ export interface TaskInfo {
   taskId: number;
   title: string;
   rewardClips: number;
+  minTier: number;
+  requiredTaskId: number | null;
   maxClaims: number;
   currentClaims: number;
   contentCid: string;

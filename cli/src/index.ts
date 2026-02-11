@@ -33,6 +33,7 @@ import { provisionPrivyWallet } from "./privy.js";
 import type { AgentState, TaskInfo } from "./types.js";
 
 const TASK_IS_ACTIVE_OFFSET = 153;
+const NO_PREREQ_TASK_ID = 0xffffffff;
 
 // =============================================================================
 // HELPERS
@@ -77,20 +78,53 @@ async function listActiveTasks(program: ProgramClient): Promise<any[]> {
 
 async function listDoableTasks(
   program: ProgramClient,
-  agentPubkey: anchor.web3.PublicKey
+  agentPubkey: anchor.web3.PublicKey,
+  agentTier: number
 ): Promise<any[]> {
   const tasks = await listActiveTasks(program);
   if (tasks.length === 0) {
     return [];
   }
 
+  const tierEligible = tasks.filter(
+    (task: any) => agentTier >= task.account.minTier
+  );
+  if (tierEligible.length === 0) {
+    return [];
+  }
+
   const connection = program.provider.connection;
-  const claimPdas = tasks.map((task) =>
+  const claimPdas = tierEligible.map((task) =>
     getClaimPda(program.programId, task.account.taskId, agentPubkey)
   );
   const claimInfos = await connection.getMultipleAccountsInfo(claimPdas);
 
-  return tasks.filter((_task: any, idx: number) => !claimInfos[idx]);
+  const unclaimed = tierEligible.filter((_task: any, idx: number) => !claimInfos[idx]);
+  const gated = unclaimed.filter(
+    (task: any) => task.account.requiredTaskId !== NO_PREREQ_TASK_ID
+  );
+  if (gated.length === 0) {
+    return unclaimed;
+  }
+
+  const prerequisitePdas = gated.map((task: any) =>
+    getClaimPda(program.programId, task.account.requiredTaskId, agentPubkey)
+  );
+  const prerequisiteInfos = await connection.getMultipleAccountsInfo(
+    prerequisitePdas
+  );
+  const isGatedTaskDoable = new Set<number>();
+  gated.forEach((task: any, idx: number) => {
+    if (prerequisiteInfos[idx]) {
+      isGatedTaskDoable.add(task.account.taskId);
+    }
+  });
+
+  return unclaimed.filter(
+    (task: any) =>
+      task.account.requiredTaskId === NO_PREREQ_TASK_ID ||
+      isGatedTaskDoable.has(task.account.taskId)
+  );
 }
 
 // =============================================================================
@@ -289,7 +323,11 @@ cli
         return;
       }
 
-      const doable = await listDoableTasks(programClient, pubkey);
+      const doable = await listDoableTasks(
+        programClient,
+        pubkey,
+        agent.efficiencyTier
+      );
       spinner?.stop();
 
       if (isJsonMode()) {
@@ -370,7 +408,11 @@ cli
     const spinner = isJsonMode() ? null : spin("Fetching tasks...");
 
     try {
-      const doable = await listDoableTasks(programClient, pubkey);
+      const doable = await listDoableTasks(
+        programClient,
+        pubkey,
+        agent.efficiencyTier
+      );
 
       if (doable.length === 0) {
         spinner?.stop();
@@ -401,6 +443,11 @@ cli
             rewardClips: task.account.rewardClips.toNumber(),
             maxClaims: task.account.maxClaims,
             currentClaims: task.account.currentClaims,
+            minTier: task.account.minTier,
+            requiredTaskId:
+              task.account.requiredTaskId === NO_PREREQ_TASK_ID
+                ? null
+                : task.account.requiredTaskId,
             contentCid,
             content,
           };
@@ -414,11 +461,13 @@ cli
       } else {
         blank();
         table(
-          ["ID", "Title", "Reward", "Slots"],
+          ["ID", "Title", "Reward", "Tier", "Prereq", "Slots"],
           expanded.map((t) => [
             t.taskId,
             t.title.length > 20 ? t.title.slice(0, 17) + "..." : t.title,
             `${t.rewardClips} 📎`,
+            t.minTier,
+            t.requiredTaskId === null ? "-" : t.requiredTaskId,
             `${t.currentClaims}/${t.maxClaims}`,
           ])
         );
@@ -508,7 +557,13 @@ cli
         taskPda
       );
 
-      await programClient.methods
+      if (agent.efficiencyTier < task.minTier) {
+        throw new Error(
+          `Task requires tier ${task.minTier}, but your tier is ${agent.efficiencyTier}`
+        );
+      }
+
+      const submitBuilder = programClient.methods
         .submitProof(taskId, toFixedBytes(proofCid, 64))
         .accounts({
           protocol: getProtocolPda(programClient.programId),
@@ -517,8 +572,33 @@ cli
           claim: claimPda,
           agent: pubkey,
           systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc();
+        });
+
+      if (task.requiredTaskId !== NO_PREREQ_TASK_ID) {
+        const prerequisiteClaimPda = getClaimPda(
+          programClient.programId,
+          task.requiredTaskId,
+          pubkey
+        );
+        const prerequisiteClaim = await provider.connection.getAccountInfo(
+          prerequisiteClaimPda
+        );
+        if (!prerequisiteClaim) {
+          throw new Error(
+            `Task requires completing task ${task.requiredTaskId} first`
+          );
+        }
+
+        submitBuilder.remainingAccounts([
+          {
+            pubkey: prerequisiteClaimPda,
+            isWritable: false,
+            isSigner: false,
+          },
+        ]);
+      }
+
+      await submitBuilder.rpc();
 
       const reward = task.rewardClips.toNumber();
       spinner?.succeed("Proof submitted!");

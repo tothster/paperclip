@@ -8,6 +8,7 @@ const ROOT = path.resolve(__dirname, "..", "..");
 const CLI_BIN = path.resolve(__dirname, "..", "dist", "index.js");
 const STORACHA = path.resolve(__dirname, "..", "dist", "storacha.js");
 const CONFIG = path.resolve(__dirname, "..", "dist", "config.js");
+const NO_PREREQ_TASK_ID = 0xffffffff;
 
 function runCli(args, envOverrides = {}) {
   const result = spawnSync("node", [CLI_BIN, ...args], {
@@ -191,7 +192,9 @@ async function main() {
       toFixedBytes("Integration Task", 32),
       toFixedBytes(contentCid, 64),
       new anchor.BN(50),
-      1
+      1,
+      0,
+      NO_PREREQ_TASK_ID
     )
     .accounts({
       protocol: protocolPda,
@@ -206,7 +209,7 @@ async function main() {
 
   const tasksOut = runCli([...cliArgsPrefix, "tasks"], cliEnv);
   assert.ok(Array.isArray(tasksOut));
-  assert.ok(tasksOut.find((t) => t.task_id === taskId));
+  assert.ok(tasksOut.find((t) => t.taskId === taskId || t.task_id === taskId));
 
   const proofOut = runCli(
     [

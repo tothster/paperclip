@@ -9,6 +9,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
+const NO_PREREQ_TASK_ID = 0xffffffff;
 
 function toFixedBytes(input: string, size: number): number[] {
   const buf = Buffer.alloc(size);
@@ -75,15 +76,19 @@ describe("paperclip-protocol", () => {
   const baseUnit = new anchor.BN(100);
   const task1Id = 1;
   const task2Id = 2;
+  const task3Id = 3;
+  const task4Id = 4;
 
   const unauthorized = Keypair.generate();
   const agent2 = Keypair.generate();
   const agent3 = Keypair.generate();
+  const agent4 = Keypair.generate();
 
   before(async () => {
     await airdrop(provider.connection, unauthorized.publicKey);
     await airdrop(provider.connection, agent2.publicKey);
     await airdrop(provider.connection, agent3.publicKey);
+    await airdrop(provider.connection, agent4.publicKey);
   });
 
   it("Initializes protocol", async () => {
@@ -128,7 +133,9 @@ describe("paperclip-protocol", () => {
         toFixedBytes("Task One", 32),
         toFixedBytes("bafy-task-one", 64),
         new anchor.BN(50),
-        2
+        2,
+        0,
+        NO_PREREQ_TASK_ID
       )
       .accounts({
         protocol: protocolPda,
@@ -144,6 +151,8 @@ describe("paperclip-protocol", () => {
     assert.equal(task.maxClaims, 2);
     assert.equal(task.currentClaims, 0);
     assert.equal(task.isActive, true);
+    assert.equal(task.minTier, 0);
+    assert.equal(task.requiredTaskId, NO_PREREQ_TASK_ID);
   });
 
   it("Rejects non-authority create_task", async () => {
@@ -155,7 +164,9 @@ describe("paperclip-protocol", () => {
           toFixedBytes("Unauthorized", 32),
           toFixedBytes("bafy-unauthorized", 64),
           new anchor.BN(10),
-          1
+          1,
+          0,
+          NO_PREREQ_TASK_ID
         )
         .accounts({
           protocol: protocolPda,
@@ -169,6 +180,33 @@ describe("paperclip-protocol", () => {
     } catch (err) {
       const message = (err as Error).toString();
       assert.include(message, "Unauthorized");
+    }
+  });
+
+  it("Rejects self-referential task prerequisite", async () => {
+    const taskPda = getTaskPda(program.programId, 777);
+    try {
+      await program.methods
+        .createTask(
+          777,
+          toFixedBytes("Bad Prereq", 32),
+          toFixedBytes("bafy-bad-prereq", 64),
+          new anchor.BN(10),
+          1,
+          0,
+          777
+        )
+        .accounts({
+          protocol: protocolPda,
+          authority: provider.wallet.publicKey,
+          task: taskPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      assert.fail("Expected self-referential prerequisite to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Task cannot require itself as a prerequisite");
     }
   });
 
@@ -231,6 +269,132 @@ describe("paperclip-protocol", () => {
     }
   });
 
+  it("Enforces minimum tier on submit_proof", async () => {
+    const taskPda = getTaskPda(program.programId, task3Id);
+    await program.methods
+      .createTask(
+        task3Id,
+        toFixedBytes("Tier One Task", 32),
+        toFixedBytes("bafy-tier-one-task", 64),
+        new anchor.BN(30),
+        5,
+        1,
+        NO_PREREQ_TASK_ID
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const claimPda = getClaimPda(
+      program.programId,
+      task3Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task3Id, toFixedBytes("bafy-tier-fail", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agentPda,
+          claim: claimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      assert.fail("Expected tier gate to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Agent tier is too low for this task");
+    }
+  });
+
+  it("Enforces prerequisite task completion", async () => {
+    const taskPda = getTaskPda(program.programId, task4Id);
+    await program.methods
+      .createTask(
+        task4Id,
+        toFixedBytes("Requires Task One", 32),
+        toFixedBytes("bafy-requires-task-one", 64),
+        new anchor.BN(40),
+        5,
+        0,
+        task1Id
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const agent4Pda = getAgentPda(program.programId, agent4.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: agent4Pda,
+        agent: agent4.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent4])
+      .rpc();
+
+    const agent4ClaimPda = getClaimPda(program.programId, task4Id, agent4.publicKey);
+    const missingPrereqClaimPda = getClaimPda(program.programId, task1Id, agent4.publicKey);
+
+    try {
+      await program.methods
+        .submitProof(task4Id, toFixedBytes("bafy-no-prereq", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agent4Pda,
+          claim: agent4ClaimPda,
+          agent: agent4.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .remainingAccounts([
+          { pubkey: missingPrereqClaimPda, isWritable: false, isSigner: false },
+        ])
+        .signers([agent4])
+        .rpc();
+      assert.fail("Expected prerequisite gate to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Required prerequisite task has not been completed");
+    }
+
+    const providerAgentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const providerClaimPda = getClaimPda(program.programId, task4Id, provider.wallet.publicKey);
+    const providerPrereqClaimPda = getClaimPda(program.programId, task1Id, provider.wallet.publicKey);
+
+    await program.methods
+      .submitProof(task4Id, toFixedBytes("bafy-with-prereq", 64))
+      .accounts({
+        protocol: protocolPda,
+        task: taskPda,
+        agentAccount: providerAgentPda,
+        claim: providerClaimPda,
+        agent: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .remainingAccounts([
+        { pubkey: providerPrereqClaimPda, isWritable: false, isSigner: false },
+      ])
+      .rpc();
+
+    const providerClaim = await program.account.claimRecord.fetch(providerClaimPda);
+    assert.equal(providerClaim.taskId, task4Id);
+  });
+
   it("Rejects claims when max_claims reached", async () => {
     const taskPda = getTaskPda(program.programId, task2Id);
     await program.methods
@@ -239,7 +403,9 @@ describe("paperclip-protocol", () => {
         toFixedBytes("Task Two", 32),
         toFixedBytes("bafy-task-two", 64),
         new anchor.BN(25),
-        1
+        1,
+        0,
+        NO_PREREQ_TASK_ID
       )
       .accounts({
         protocol: protocolPda,

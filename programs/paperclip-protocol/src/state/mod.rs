@@ -42,10 +42,12 @@ pub struct TaskRecord {
     pub current_claims: u16,
     pub is_active: bool,
     pub created_at: i64,
+    pub min_tier: u8,
+    pub required_task_id: u32,
 }
 
 impl TaskRecord {
-    pub const SPACE: usize = 8 + 1 + 4 + 32 + 32 + 64 + 8 + 2 + 2 + 1 + 8;
+    pub const SPACE: usize = 8 + 1 + 4 + 32 + 32 + 64 + 8 + 2 + 2 + 1 + 8 + 1 + 4;
 }
 
 #[account]
