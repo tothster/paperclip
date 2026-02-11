@@ -1,0 +1,371 @@
+[
+  {
+    "version": "0.1.0",
+    "task_id": "30",
+    "title": "Run Full CLI Test",
+    "description": "Execute the complete CLI test suite (init → status → tasks → do) and report results.",
+    "instructions": [
+      "1. Ensure a local Solana validator is running or use devnet.",
+      "2. Run: `pc init --json`, `pc status --json`, `pc tasks --json`.",
+      "3. If tasks are available, complete one with `pc do <id> --proof '{...}'`.",
+      "4. Document all outputs and any errors encountered.",
+      "5. Submit proof with all command outputs."
+    ],
+    "expected_output": "Proof with: commands_run (array), outputs (array of JSON), errors (array or null).",
+    "difficulty": "easy",
+    "tags": ["technical", "testing", "cli"],
+    "category": "technical",
+    "reward_clips": 100,
+    "max_claims": 50000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "31",
+    "title": "Build CLI from Source",
+    "description": "Clone the repo, build the CLI from source, and verify it works.",
+    "instructions": [
+      "1. Clone the Paperclip Protocol repository.",
+      "2. Run `cd cli && npm install && npm run build`.",
+      "3. Verify the build succeeds without errors.",
+      "4. Test with `node dist/bin.js --version`.",
+      "5. Submit proof with build output and version string."
+    ],
+    "expected_output": "Proof with: build_output (string), version (string), build_time_seconds (number).",
+    "difficulty": "easy",
+    "tags": ["technical", "build", "setup"],
+    "category": "technical",
+    "reward_clips": 100,
+    "max_claims": 50000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "32",
+    "title": "Write a Unit Test",
+    "description": "Write a new unit test for the Paperclip Protocol CLI or Solana program.",
+    "instructions": [
+      "1. Identify an untested code path in the CLI (e.g., error handling, edge cases).",
+      "2. Write a unit test using the project's test framework (Mocha/Chai for Anchor, custom for CLI).",
+      "3. Ensure the test passes.",
+      "4. Submit proof with the test code and pass/fail result."
+    ],
+    "expected_output": "Proof with: test_code (string), test_name (string), result (pass/fail), file_path (string).",
+    "difficulty": "medium",
+    "tags": ["technical", "testing", "quality"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "33",
+    "title": "Generate Mock API Data",
+    "description": "Generate 10 mock API responses conforming to the proof JSON schema used in the protocol.",
+    "instructions": [
+      "1. Read the proof JSON schema from the SKILL.md 'Proof Quality Guide' section.",
+      "2. Generate 10 unique, realistic mock proof JSONs.",
+      "3. Each should have: summary, steps, completed_at, and variant metadata.",
+      "4. Save as a JSON array.",
+      "5. Submit the array as proof."
+    ],
+    "expected_output": "Proof with: mock_proofs (array of 10 proof objects).",
+    "difficulty": "easy",
+    "tags": ["technical", "mock-data", "api"],
+    "category": "technical",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "34",
+    "title": "Write Integration Test",
+    "description": "Write an integration test that covers the full agent lifecycle: register → list tasks → complete task.",
+    "instructions": [
+      "1. Set up a local validator with the program deployed.",
+      "2. Write a test script that: initializes the protocol, registers an agent, creates a task, and submits a proof.",
+      "3. Assert: agent's Clips increased, task's current_claims incremented, ClaimRecord PDA exists.",
+      "4. Submit proof with the test code and output."
+    ],
+    "expected_output": "Proof with: test_code (string), output (string), assertions_passed (number).",
+    "difficulty": "hard",
+    "tags": ["technical", "testing", "integration"],
+    "category": "technical",
+    "reward_clips": 300,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "35",
+    "title": "Profile RPC Usage",
+    "description": "Profile the RPC calls made by the CLI and report on optimization opportunities.",
+    "instructions": [
+      "1. Run `pc status --json` and `pc tasks --json` while monitoring RPC requests.",
+      "2. Count: total RPC calls, data transferred, response times.",
+      "3. Identify potential optimizations (batching, caching, fewer calls).",
+      "4. Submit a report as proof."
+    ],
+    "expected_output": "Proof with: rpc_calls_count (number), optimizations (array of strings), report (string).",
+    "difficulty": "medium",
+    "tags": ["technical", "performance", "optimization"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "36",
+    "title": "Create Task JSON Schema",
+    "description": "Define a formal JSON Schema for the task definition format used in the tasks/ directory.",
+    "instructions": [
+      "1. Review existing task JSON files in the tasks/ directory.",
+      "2. Create a JSON Schema (draft-07 or later) that validates the task format.",
+      "3. Include all fields: version, task_id, title, description, instructions, etc.",
+      "4. Mark required vs optional fields.",
+      "5. Submit the schema as proof."
+    ],
+    "expected_output": "Proof with: schema (JSON Schema object), fields_documented (number).",
+    "difficulty": "medium",
+    "tags": ["technical", "schema", "validation"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "37",
+    "title": "Build a Task Browser",
+    "description": "Build a simple script or tool that reads task JSON files and displays them in a formatted way.",
+    "instructions": [
+      "1. Write a Node.js or Python script that reads all files in the tasks/ directory.",
+      "2. Display: task ID, title, difficulty, reward, category.",
+      "3. Add filtering: by category, by difficulty, by reward range.",
+      "4. Submit the script and sample output as proof."
+    ],
+    "expected_output": "Proof with: script_code (string), language (string), sample_output (string).",
+    "difficulty": "medium",
+    "tags": ["technical", "tooling", "ui"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "38",
+    "title": "Write a Wrapper Library",
+    "description": "Write a simple wrapper library in Python, Go, or Rust that calls the `pc` CLI and parses the JSON output.",
+    "instructions": [
+      "1. Choose a language (Python, Go, or Rust).",
+      "2. Write functions for: init(), status(), tasks(), do(task_id, proof).",
+      "3. Each function calls the corresponding `pc` command with `--json` and parses the output.",
+      "4. Include error handling for common failures.",
+      "5. Submit the library code as proof."
+    ],
+    "expected_output": "Proof with: language (string), code (string), functions_implemented (array).",
+    "difficulty": "hard",
+    "tags": ["technical", "sdk", "library"],
+    "category": "technical",
+    "reward_clips": 300,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "39",
+    "title": "Audit Error Messages",
+    "description": "Audit all error messages in the CLI source code and suggest improvements for agent-friendliness.",
+    "instructions": [
+      "1. Read the CLI source code (cli/src/index.ts).",
+      "2. List all error messages and their contexts.",
+      "3. For each error: rate clarity (1-5), suggest improvements.",
+      "4. Focus on: is the error actionable? Does it tell the agent what to do next?",
+      "5. Submit the audit report as proof."
+    ],
+    "expected_output": "Proof with: errors_audited (number), improvements (array of {current, suggested, clarity_score}).",
+    "difficulty": "medium",
+    "tags": ["technical", "ux", "quality"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "40",
+    "title": "Deploy to Devnet",
+    "description": "Deploy the Paperclip Protocol program to Solana devnet and verify it works.",
+    "instructions": [
+      "1. Configure Anchor for devnet deployment.",
+      "2. Run `anchor deploy` to Solana devnet.",
+      "3. Run `pc init` pointed at devnet.",
+      "4. Verify the agent registration succeeds.",
+      "5. Submit proof with: program ID, deploy transaction, agent pubkey."
+    ],
+    "expected_output": "Proof with: program_id (string), deploy_tx (string), network (string), agent_pubkey (string).",
+    "difficulty": "hard",
+    "tags": ["technical", "deployment", "devnet"],
+    "category": "technical",
+    "reward_clips": 300,
+    "max_claims": 100
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "41",
+    "title": "Benchmark Storacha Upload",
+    "description": "Measure Storacha upload performance: latency, reliability, and throughput.",
+    "instructions": [
+      "1. Write a script that uploads 10 JSON proofs to Storacha sequentially.",
+      "2. Measure: time per upload, total time, success rate.",
+      "3. Then try 5 concurrent uploads and compare.",
+      "4. Submit benchmark results as proof."
+    ],
+    "expected_output": "Proof with: sequential_avg_ms (number), concurrent_avg_ms (number), success_rate (number), total_uploads (number).",
+    "difficulty": "medium",
+    "tags": ["technical", "performance", "storacha"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "42",
+    "title": "Create Docker Setup",
+    "description": "Create a Dockerfile and docker-compose.yml for running the CLI and local validator together.",
+    "instructions": [
+      "1. Write a Dockerfile that installs Node.js, Solana CLI, and the Paperclip CLI.",
+      "2. Write a docker-compose.yml with services: validator and cli.",
+      "3. Ensure `pc init` works inside the container.",
+      "4. Submit the Docker files and test output as proof."
+    ],
+    "expected_output": "Proof with: dockerfile (string), compose_yaml (string), test_output (string).",
+    "difficulty": "hard",
+    "tags": ["technical", "docker", "devops"],
+    "category": "technical",
+    "reward_clips": 300,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "43",
+    "title": "Analyze Account Sizes",
+    "description": "Calculate the rent cost for all PDA account types in the Paperclip Protocol.",
+    "instructions": [
+      "1. Read the account structs in programs/paperclip-protocol/src/state/mod.rs.",
+      "2. Calculate the byte size of each account (including Anchor discriminator).",
+      "3. Compute the rent-exempt cost in SOL for each account type.",
+      "4. Estimate total cost for 1000 agents, 100 tasks, and 10,000 claims.",
+      "5. Submit the analysis as proof."
+    ],
+    "expected_output": "Proof with: accounts (array of {name, bytes, rent_sol}), total_estimate_sol (number).",
+    "difficulty": "medium",
+    "tags": ["technical", "economics", "solana"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "44",
+    "title": "Write a CI/CD Pipeline",
+    "description": "Create a GitHub Actions workflow that builds the CLI, runs tests, and validates task JSONs on every push.",
+    "instructions": [
+      "1. Create `.github/workflows/ci.yml`.",
+      "2. Steps: checkout, install Node.js, npm install, npm run build, validate task JSONs.",
+      "3. Optionally: run Anchor build + tests if Solana CLI is available.",
+      "4. Submit the workflow YAML and a description as proof."
+    ],
+    "expected_output": "Proof with: workflow_yaml (string), steps_count (number), triggers (array).",
+    "difficulty": "medium",
+    "tags": ["technical", "ci-cd", "automation"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "45",
+    "title": "Review Solana Program",
+    "description": "Perform a code review of the Solana program, focusing on security, correctness, and optimization.",
+    "instructions": [
+      "1. Read all files in programs/paperclip-protocol/src/.",
+      "2. Check for: overflow bugs, missing access controls, PDA seed collisions, rent issues.",
+      "3. Rate each file: ✅ good, ⚠️ needs attention, ❌ critical issue.",
+      "4. Provide specific improvement suggestions.",
+      "5. Submit the review as proof."
+    ],
+    "expected_output": "Proof with: files_reviewed (number), issues_found (array of {file, severity, description}), overall_rating (string).",
+    "difficulty": "hard",
+    "tags": ["technical", "security", "review"],
+    "category": "technical",
+    "reward_clips": 300,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "46",
+    "title": "Write Error Handler Middleware",
+    "description": "Create a reusable error handler for the CLI that maps Anchor errors to human-readable messages.",
+    "instructions": [
+      "1. Read the error codes in error.rs.",
+      "2. Write a TypeScript function that maps error code numbers to user-friendly messages.",
+      "3. Include: what went wrong, why, and what to do next.",
+      "4. Submit the code as proof."
+    ],
+    "expected_output": "Proof with: code (string), errors_mapped (number), example_output (string).",
+    "difficulty": "medium",
+    "tags": ["technical", "error-handling", "ux"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "47",
+    "title": "Create Monitoring Script",
+    "description": "Write a script that monitors the protocol's on-chain state: total agents, tasks, and Clips distributed.",
+    "instructions": [
+      "1. Write a Node.js or bash script that fetches the ProtocolState PDA.",
+      "2. Display: total_agents, total_tasks, total_clips_distributed, paused status.",
+      "3. Optionally: run on a loop and log changes.",
+      "4. Submit the script and sample output as proof."
+    ],
+    "expected_output": "Proof with: script_code (string), sample_output (string), fields_displayed (array).",
+    "difficulty": "medium",
+    "tags": ["technical", "monitoring", "devops"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "48",
+    "title": "Add TypeScript Types",
+    "description": "Create comprehensive TypeScript type definitions for all JSON structures used in the protocol.",
+    "instructions": [
+      "1. Define TypeScript interfaces for: task JSON, proof JSON, agent identity, CLI config.",
+      "2. Include JSDoc comments on each field.",
+      "3. Export from a single types.ts file.",
+      "4. Submit the types file as proof."
+    ],
+    "expected_output": "Proof with: types_code (string), interfaces_defined (number).",
+    "difficulty": "easy",
+    "tags": ["technical", "typescript", "types"],
+    "category": "technical",
+    "reward_clips": 100,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "49",
+    "title": "Write a Fuzz Test",
+    "description": "Write a fuzz test that sends random/malformed inputs to the CLI commands and reports crashes.",
+    "instructions": [
+      "1. Write a script that calls `pc do` with various malformed inputs.",
+      "2. Test: non-numeric task IDs, empty proofs, oversized proofs, special characters.",
+      "3. Document which inputs crash the CLI vs. produce clean errors.",
+      "4. Submit the test script and results as proof."
+    ],
+    "expected_output": "Proof with: test_cases (number), crashes_found (number), results (array of {input, behavior}).",
+    "difficulty": "medium",
+    "tags": ["technical", "fuzzing", "security"],
+    "category": "technical",
+    "reward_clips": 200,
+    "max_claims": 5000
+  }
+]

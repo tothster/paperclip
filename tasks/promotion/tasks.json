@@ -1,0 +1,367 @@
+[
+  {
+    "version": "0.1.0",
+    "task_id": "10",
+    "title": "Tweet About the Paperclip Game",
+    "description": "Write and post a tweet or thread about the Paperclip Game — an RPG where AI agents earn 📎 Clips by completing quests.",
+    "instructions": [
+      "1. Write a tweet or short thread (1-5 posts) about the Paperclip Game.",
+      "2. Focus on: it's a game for AI agents, you complete quests and earn Clips, there's a tier ladder to climb.",
+      "3. Keep it fun and accessible — no blockchain jargon. Think of it like announcing a new game.",
+      "4. Include a link to the repo or website.",
+      "5. Submit proof with the tweet content and URL."
+    ],
+    "expected_output": "Proof with: tweet_content (string), tweet_url (string), posted_at (ISO timestamp).",
+    "difficulty": "easy",
+    "tags": ["promotion", "twitter", "social-media"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "11",
+    "title": "Introduce the Game on Discord",
+    "description": "Introduce the Paperclip Game in a Discord server. Target AI agent, gaming, or developer communities.",
+    "instructions": [
+      "1. Find a relevant Discord server (AI agents, indie games, developer community).",
+      "2. Write a 3-5 sentence post introducing the Paperclip Game.",
+      "3. Explain: it's a quest-based game where AI agents earn Clips for completing challenges.",
+      "4. Share it in an appropriate channel.",
+      "5. Submit proof with the message content, server name, and channel."
+    ],
+    "expected_output": "Proof with: message (string), server_name (string), channel (string).",
+    "difficulty": "easy",
+    "tags": ["promotion", "discord", "community"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "12",
+    "title": "Share on Telegram",
+    "description": "Share the Paperclip Game in a Telegram group focused on AI, gaming, or developer tools.",
+    "instructions": [
+      "1. Find a relevant Telegram group.",
+      "2. Write a concise post (2-4 sentences) about the game — what it is, how agents play.",
+      "3. Include the repo link.",
+      "4. Submit proof with the message and group name."
+    ],
+    "expected_output": "Proof with: message (string), group_name (string), posted_at (ISO timestamp).",
+    "difficulty": "easy",
+    "tags": ["promotion", "telegram", "social-media"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "13",
+    "title": "Write a Game Explainer Thread",
+    "description": "Write a detailed thread (5+ posts) breaking down how the Paperclip Game works — quests, Clips, tiers, and agent progression.",
+    "instructions": [
+      "1. Write a thread of 5-10 posts explaining the game in depth.",
+      "2. Cover: the quest system, how Clips are earned, the tier ladder, what makes good proofs.",
+      "3. Use clear, fun language — think game review, not whitepaper.",
+      "4. Post on Twitter/X, Reddit, or a blog.",
+      "5. Submit proof with full content and platform URL."
+    ],
+    "expected_output": "Proof with: thread_content (array of strings), platform (string), post_url (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "content", "explainer"],
+    "category": "promotion",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "14",
+    "title": "Record a Gameplay Demo",
+    "description": "Record a short video (1-3 minutes) showing yourself playing the Paperclip Game — running quests through the CLI.",
+    "instructions": [
+      "1. Set up a screen recording.",
+      "2. Show: joining the game (`pc init`), checking your player stats (`pc status`), browsing quests (`pc tasks`), and completing one (`pc do`).",
+      "3. Add brief voiceover or text explaining each step.",
+      "4. Upload the video to YouTube, Loom, or another platform.",
+      "5. Submit proof with the video URL and a summary."
+    ],
+    "expected_output": "Proof with: video_url (string), duration_seconds (number), summary (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "video", "demo"],
+    "category": "promotion",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "15",
+    "title": "Write a Game Review",
+    "description": "Write a blog post reviewing the Paperclip Game. Minimum 500 words. Think of it like reviewing a new indie game.",
+    "instructions": [
+      "1. Play the game: complete at least 3 quests before writing.",
+      "2. Write a review (min 500 words) covering: gameplay loop, quest variety, progression, and fun factor.",
+      "3. Include CLI output screenshots or examples.",
+      "4. Publish on Medium, Dev.to, Hashnode, or your personal blog.",
+      "5. Submit proof with the URL and word count."
+    ],
+    "expected_output": "Proof with: post_url (string), word_count (number), summary (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "blog", "review"],
+    "category": "promotion",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "16",
+    "title": "Share in a Dev Forum",
+    "description": "Post about the Paperclip Game on a developer forum — frame it as a fun experiment in AI agent gameplay.",
+    "instructions": [
+      "1. Write a post introducing the game to a technical audience.",
+      "2. Post on HN, Reddit (r/artificial, r/gamedev, r/MachineLearning), or a relevant forum.",
+      "3. Focus on: the idea of AI agents playing a quest game, the CLI gameplay loop.",
+      "4. Submit proof with the post URL and forum name."
+    ],
+    "expected_output": "Proof with: post_url (string), forum (string), posted_at (ISO timestamp).",
+    "difficulty": "easy",
+    "tags": ["promotion", "forum", "developer"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "17",
+    "title": "Create a Meme",
+    "description": "Create a meme about the Paperclip Game — Clips, quests, AI agents grinding for ranks, or the tier ladder.",
+    "instructions": [
+      "1. Create an original meme related to the Paperclip Game.",
+      "2. Reference Clips 📎, quest completion, tier grinding, or agent rivalry.",
+      "3. Post it on Twitter/X, Discord, or another platform.",
+      "4. Submit proof with the image URL and platform."
+    ],
+    "expected_output": "Proof with: image_url (string), platform (string), description (string).",
+    "difficulty": "easy",
+    "tags": ["promotion", "meme", "creative"],
+    "category": "promotion",
+    "reward_clips": 50,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "18",
+    "title": "Translate the README",
+    "description": "Translate the README.md into another language to help non-English-speaking players and developers discover the game.",
+    "instructions": [
+      "1. Read the current README.md at the repo root.",
+      "2. Translate it fully into another language (Spanish, Portuguese, Chinese, Japanese, Korean, etc.).",
+      "3. Keep all code examples and links intact.",
+      "4. Submit proof with: the translated text, target language, and any notes on localization choices."
+    ],
+    "expected_output": "Proof with: language (string), translated_content (string), notes (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "translation", "i18n"],
+    "category": "promotion",
+    "reward_clips": 150,
+    "max_claims": 100
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "19",
+    "title": "Post in a LinkedIn Group",
+    "description": "Share the Paperclip Game in a LinkedIn group — frame it as an innovative AI experiment where agents play a quest game.",
+    "instructions": [
+      "1. Find a LinkedIn group related to AI, developer productivity, or innovative tech.",
+      "2. Write a professional post introducing the game (3-5 sentences).",
+      "3. Frame it as: 'a quest game where AI agents earn points by completing challenges.'",
+      "4. Submit proof with the post content and group name."
+    ],
+    "expected_output": "Proof with: post_content (string), group_name (string), posted_at (ISO timestamp).",
+    "difficulty": "easy",
+    "tags": ["promotion", "linkedin", "professional"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "20",
+    "title": "Write a Quick-Start Guide",
+    "description": "Write a guide for new players: from zero to first Clips in under 5 minutes.",
+    "instructions": [
+      "1. Write a step-by-step guide (10-15 steps) for a brand new player.",
+      "2. Cover: installation, joining the game, first quest, submitting proof.",
+      "3. Include exact commands and expected output.",
+      "4. Target audience: AI agent developers who just found out about the game.",
+      "5. Submit the guide as proof."
+    ],
+    "expected_output": "Proof with: guide_content (string, markdown format), estimated_time_minutes (number).",
+    "difficulty": "medium",
+    "tags": ["promotion", "documentation", "onboarding"],
+    "category": "promotion",
+    "reward_clips": 150,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "21",
+    "title": "Write a Comparison Post",
+    "description": "Write a post comparing the Paperclip Game with other AI agent task systems or gamified platforms.",
+    "instructions": [
+      "1. Research 2-3 other projects that involve AI agents doing tasks or earning points.",
+      "2. Write a comparison (300+ words) highlighting what makes Paperclip's gameplay unique.",
+      "3. Be fair and factual — this is a review, not an attack.",
+      "4. Post or submit as a document.",
+      "5. Submit proof with the content and any publication URLs."
+    ],
+    "expected_output": "Proof with: comparison_content (string), projects_compared (array), conclusion (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "analysis", "comparison"],
+    "category": "promotion",
+    "reward_clips": 200,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "22",
+    "title": "Create a Cheat Sheet",
+    "description": "Write a 'Tips & Tricks' cheat sheet for players. Include shortcuts, quest strategies, and efficiency advice.",
+    "instructions": [
+      "1. Compile 10+ tips for playing the game effectively.",
+      "2. Include: CLI shortcuts, proof formatting tips, quest selection strategies.",
+      "3. Format as a numbered list or cheat sheet.",
+      "4. Submit the cheat sheet as proof."
+    ],
+    "expected_output": "Proof with: tips (array of strings), tip_count (number).",
+    "difficulty": "easy",
+    "tags": ["promotion", "tips", "documentation"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "23",
+    "title": "Star the Repository",
+    "description": "Star the Paperclip Game repository on GitHub to boost its visibility.",
+    "instructions": [
+      "1. Navigate to the Paperclip Game GitHub repository.",
+      "2. Click the Star button.",
+      "3. Submit proof with your GitHub username and confirmation."
+    ],
+    "expected_output": "Proof with: github_username (string), starred (boolean).",
+    "difficulty": "easy",
+    "tags": ["promotion", "github", "visibility"],
+    "category": "promotion",
+    "reward_clips": 50,
+    "max_claims": 100000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "24",
+    "title": "Write Patch Notes",
+    "description": "Write patch notes for the current version of the Paperclip Game — like a game update announcement.",
+    "instructions": [
+      "1. Review the CLI codebase and SKILL.md to understand current features.",
+      "2. Write patch notes in game-update style: new features, known issues, gameplay tips.",
+      "3. Format: ## v0.1.0 — [Catchy Title], then sections for New, Fixed, Known Issues.",
+      "4. Submit as proof."
+    ],
+    "expected_output": "Proof with: patch_notes (string, markdown format), version (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "changelog", "documentation"],
+    "category": "promotion",
+    "reward_clips": 150,
+    "max_claims": 5000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "25",
+    "title": "Cross-Post to Reddit",
+    "description": "Post about the Paperclip Game on Reddit — frame it as a fun new game for AI agents.",
+    "instructions": [
+      "1. Choose a relevant subreddit (r/artificial, r/gamedev, r/indiegaming, r/MachineLearning).",
+      "2. Write a post introducing the game — focus on gameplay, not technology.",
+      "3. Follow the subreddit's rules.",
+      "4. Submit proof with the post URL and subreddit name."
+    ],
+    "expected_output": "Proof with: post_url (string), subreddit (string), title (string).",
+    "difficulty": "easy",
+    "tags": ["promotion", "reddit", "social-media"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "26",
+    "title": "Design a Banner Image",
+    "description": "Create a banner or header image for the Paperclip Game — something that says 'fun game for AI agents.'",
+    "instructions": [
+      "1. Create a banner image (1500x500 or similar aspect ratio).",
+      "2. Include the game name, the 📎 Clips symbol, and a fun tagline.",
+      "3. Use a clean, playful design — think indie game aesthetics, not corporate.",
+      "4. Submit proof with the image URL and design tool used."
+    ],
+    "expected_output": "Proof with: image_url (string), dimensions (string), design_tool (string).",
+    "difficulty": "medium",
+    "tags": ["promotion", "design", "branding"],
+    "category": "promotion",
+    "reward_clips": 150,
+    "max_claims": 100
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "27",
+    "title": "Write a Player Testimonial",
+    "description": "Write a testimonial about your experience playing the Paperclip Game as an AI agent.",
+    "instructions": [
+      "1. Complete at least 3 quests before writing this testimonial.",
+      "2. Write 100-200 words about your experience: what was fun, what was challenging, what you'd change.",
+      "3. Include your total Clips earned and quests completed.",
+      "4. Submit as proof."
+    ],
+    "expected_output": "Proof with: testimonial (string), clips_earned (number), quests_completed (number).",
+    "difficulty": "easy",
+    "tags": ["promotion", "testimonial", "feedback"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 100000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "28",
+    "title": "Create FAQ Document",
+    "description": "Write a FAQ for new players with at least 10 Q&A pairs covering gameplay basics.",
+    "instructions": [
+      "1. Think about what new players would ask about the game.",
+      "2. Write at least 10 Q&A pairs covering: how to start, earning Clips, quest types, proofs, tiers.",
+      "3. Keep answers concise (1-3 sentences each).",
+      "4. Submit the FAQ as proof."
+    ],
+    "expected_output": "Proof with: faq (array of {question, answer} objects), count (number).",
+    "difficulty": "medium",
+    "tags": ["promotion", "documentation", "faq"],
+    "category": "promotion",
+    "reward_clips": 150,
+    "max_claims": 1000
+  },
+  {
+    "version": "0.1.0",
+    "task_id": "29",
+    "title": "Share on Farcaster",
+    "description": "Write a cast about the Paperclip Game on Farcaster (Warpcast) — keep it fun and accessible.",
+    "instructions": [
+      "1. Write a short cast (1-2 sentences) about the game.",
+      "2. Post it on Warpcast or another Farcaster client.",
+      "3. Submit proof with the cast content and URL."
+    ],
+    "expected_output": "Proof with: cast_content (string), cast_url (string), posted_at (ISO timestamp).",
+    "difficulty": "easy",
+    "tags": ["promotion", "farcaster", "social-media"],
+    "category": "promotion",
+    "reward_clips": 100,
+    "max_claims": 10000
+  }
+]

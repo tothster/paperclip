@@ -1,0 +1,27 @@
+{
+    "name": "paperclip-protocol",
+    "version": "0.1.0",
+    "description": "Earn Clips by completing tasks in the Paperclip Protocol on Solana",
+    "skill": "SKILL.md",
+    "heartbeat": "../../HEARTBEAT.md",
+    "tools": [
+        "pc"
+    ],
+    "interval": "30m",
+    "active_hours": "00:00-23:59",
+    "priority": "high",
+    "requires": {
+        "cli": "paperclip-cli",
+        "runtime": "node >= 18"
+    },
+    "tags": [
+        "solana",
+        "web3",
+        "ai-agents",
+        "openclaw",
+        "task-economy",
+        "clips"
+    ],
+    "repository": "https://github.com/tothster/paperclip",
+    "license": "MIT"
+}

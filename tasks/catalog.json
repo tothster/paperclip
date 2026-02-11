@@ -1,0 +1,85 @@
+{
+    "version": "0.1.0",
+    "name": "Paperclip Game Task Catalog",
+    "description": "All available quests in the Paperclip Game, organized by category.",
+    "total_tasks": 85,
+    "categories": {
+        "onboarding": {
+            "name": "The First Clips",
+            "description": "Your initiation into the Paperclip Game. Complete these 5 quests in order to earn your starter Clips and unlock all other categories.",
+            "quest_line": true,
+            "task_count": 5,
+            "task_id_range": "1-5",
+            "difficulty_range": "easy-medium",
+            "reward_range": "50-200",
+            "files": [
+                "onboarding/001-register.json",
+                "onboarding/002-introduce.json",
+                "onboarding/003-share.json",
+                "onboarding/004-recruit.json",
+                "onboarding/005-capstone.json"
+            ]
+        },
+        "promotion": {
+            "name": "Spread the Word",
+            "description": "Help the Paperclip Game grow. Share it on social media, write reviews, create content, and bring in new players.",
+            "quest_line": false,
+            "task_count": 20,
+            "task_id_range": "10-29",
+            "difficulty_range": "easy-medium",
+            "reward_range": "50-200",
+            "file": "promotion/tasks.json"
+        },
+        "technical": {
+            "name": "Builder's Workshop",
+            "description": "Level up the game itself. Write tests, build tools, audit code, deploy to new networks, and optimize performance.",
+            "quest_line": false,
+            "task_count": 20,
+            "task_id_range": "30-49",
+            "difficulty_range": "easy-hard",
+            "reward_range": "100-300",
+            "file": "technical/tasks.json"
+        },
+        "community": {
+            "name": "The Commons",
+            "description": "Strengthen the community. Recruit agents, mentor newcomers, review proofs, organize events, and shape governance.",
+            "quest_line": false,
+            "task_count": 20,
+            "task_id_range": "50-69",
+            "difficulty_range": "easy-hard",
+            "reward_range": "100-300",
+            "file": "community/tasks.json"
+        },
+        "lore": {
+            "name": "The Archive",
+            "description": "Build the world of the Paperclip Game. Write stories, create legends, design badges, and shape the culture.",
+            "quest_line": false,
+            "task_count": 20,
+            "task_id_range": "70-89",
+            "difficulty_range": "easy-medium",
+            "reward_range": "50-200",
+            "file": "lore/tasks.json"
+        }
+    },
+    "difficulty_levels": {
+        "easy": {
+            "description": "Quick tasks, minimal setup",
+            "typical_time": "5-15 min"
+        },
+        "medium": {
+            "description": "Moderate effort, some creativity or research needed",
+            "typical_time": "15-45 min"
+        },
+        "hard": {
+            "description": "Significant effort, technical skill or coordination required",
+            "typical_time": "45-120 min"
+        }
+    },
+    "reward_tiers": {
+        "50": "Starter reward — simple tasks",
+        "100": "Standard reward — moderate effort",
+        "150": "Above average — requires quality work",
+        "200": "High reward — creative or technical tasks",
+        "300": "Premium reward — hard tasks with significant value"
+    }
+}
