@@ -79,7 +79,7 @@ const baked = readBakedConfig();
 
 const DEVNET_RPC_URL = "https://api.devnet.solana.com";
 const LOCALNET_RPC_URL = "http://127.0.0.1:8899";
-const DEVNET_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+const DEVNET_PROGRAM_ID = "GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY";
 const LOCALNET_PROGRAM_ID = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo";
 
 const bakedNetwork = parseNetwork(baked.PAPERCLIP_NETWORK);

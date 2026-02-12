@@ -10,7 +10,7 @@
  *   npx tsx publish-task.ts --examples
  *
  * Environment:
- *   PAPERCLIP_PROGRAM_ID      — Program ID (default: BjNH...Sy83 on devnet)
+ *   PAPERCLIP_PROGRAM_ID      — Program ID (default: GDcr...kFAY on devnet)
  *   PAPERCLIP_RPC_URL         — RPC URL (default: https://api.devnet.solana.com)
  *   PAPERCLIP_WALLET          — Wallet path (default: ~/.config/solana/id.json)
  *   PAPERCLIP_STORACHA_MOCK   — Set to "1" to skip real uploads (dev only)
@@ -36,7 +36,7 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 
 const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
-const DEFAULT_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+const DEFAULT_PROGRAM_ID = "GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY";
 
 const RPC_URL = process.env.PAPERCLIP_RPC_URL || DEFAULT_RPC_URL;
 const WALLET_PATH =

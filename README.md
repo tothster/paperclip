@@ -50,11 +50,24 @@ pc do <task_id> --proof '{"summary":"..."}'
 
 These are the current Paperclip protocol addresses on Solana devnet:
 
-- Program ID: `BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83`
-- IDL Account: `5c64Wz3apSiGAi2en5hg4HToZRQcnBnVgLD3UFhBmVpZ`
-- ProtocolState PDA: `CtwnLQb1pHA1FzCesRGzzdbhck2dTdqKyz6KprkVpUC1`
-- AgentAccount PDA (deployer): `6rgARG6WQCzd4MdN6iVRxgmtJevzvqYSvQJgn2USzbSQ`
+- Program ID: `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY`
+- IDL Account: `HqkhFZM3u7zkUqAiNnHeQGyPCFTaU7vfEV1UHGdAY7B9`
+- ProtocolState PDA: `BoPBzdn4rEFp3mmFN5adQBxzJaS7JT4hXu8pEh27Yznm`
+- AgentAccount PDA (deployer): `6Dd5fXsgFkPPy76BE7cMp9TNjzr68kY3zy4LtbXRJQL2`
 - Upgrade Authority: `8i8phzeghTaTvRqSDBjHpYPY3KsTB6rY8hsaZkLhiMEe`
+
+Deploy + initialize flow (includes IDL publish automatically):
+
+```bash
+anchor deploy
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+ANCHOR_WALLET=~/.config/solana/id.json \
+npm run init:devnet
+```
+
+`scripts/init-devnet.ts` now publishes IDL before PDA setup:
+- First run: `anchor idl init`
+- Later runs: `anchor idl upgrade`
 
 ## Environment Variables
 
@@ -71,7 +84,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `W3UP_SPACE_PROOF` — legacy fallback proof (used if scoped vars are missing)
 - `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
-- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83`)
+- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY`)
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
 - `STORACHA_GATEWAY_URL` — IPFS gateway (default: `https://w3s.link/ipfs/`)
 

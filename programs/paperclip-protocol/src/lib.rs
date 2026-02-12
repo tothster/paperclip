@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83");
+declare_id!("GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY");
 
 #[program]
 pub mod paperclip_protocol {

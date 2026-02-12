@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-paperclip_protocol = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83"
+paperclip_protocol = "GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY"
 
 [programs.localnet]
 paperclip_protocol = "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"

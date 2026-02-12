@@ -8,6 +8,7 @@
     "clean": "node scripts/clean.cjs",
     "build:cli": "npm run bootstrap:machine && cd cli && npm run build",
     "build": "anchor build && cd cli && npm run build",
+    "init:devnet": "npx tsx scripts/init-devnet.ts",
     "test": "anchor test --skip-local-validator",
     "test:integration": "npx tsx scripts/integration-test.ts",
     "publish:tasks": "npx tsx scripts/publish-task.ts",
