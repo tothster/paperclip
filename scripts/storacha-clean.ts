@@ -3,7 +3,7 @@
 /**
  * Storacha Space Cleanup Script
  *
- * Lists and removes all uploads from the Paperclip Storacha space.
+ * Lists and removes uploads from a selected Paperclip Storacha space.
  * Useful during development to clear out test data.
  *
  * NOTE: Per Storacha docs, removing uploads only un-lists them
@@ -16,12 +16,18 @@ import * as Proof from "@storacha/client/proof";
 import { Signer } from "@storacha/client/principal/ed25519";
 import readline from "readline";
 
-// Import config from CLI (compiled output)
+// Import config from CLI source (avoid stale dist assumptions)
 import {
   STORACHA_AGENT_KEY,
+  W3UP_DATA_SPACE_DID,
+  W3UP_DATA_SPACE_PROOF,
+  W3UP_MESSAGES_SPACE_DID,
+  W3UP_MESSAGES_SPACE_PROOF,
+  W3UP_TASKS_SPACE_DID,
+  W3UP_TASKS_SPACE_PROOF,
   W3UP_SPACE_DID,
   W3UP_SPACE_PROOF,
-} from "../cli/dist/config.js";
+} from "../cli/src/config.ts";
 
 const colors = {
   reset: "\x1b[0m",
@@ -31,7 +37,6 @@ const colors = {
   blue: "\x1b[34m",
   cyan: "\x1b[36m",
   bold: "\x1b[1m",
-  dim: "\x1b[2m",
 };
 
 const log = {
@@ -44,6 +49,43 @@ const log = {
   header: (msg: string) =>
     console.log(`\n${colors.bold}${colors.cyan}${msg}${colors.reset}\n`),
 };
+
+type StorachaScope = "data" | "tasks" | "messages";
+
+function parseScope(argv: string[]): StorachaScope {
+  const idx = argv.indexOf("--scope");
+  if (idx === -1) {
+    return "data";
+  }
+
+  const value = argv[idx + 1]?.toLowerCase().trim();
+  if (value === "data" || value === "tasks" || value === "messages") {
+    return value;
+  }
+
+  throw new Error('Invalid --scope value. Use "data", "tasks", or "messages".');
+}
+
+function getScopeConfig(scope: StorachaScope): { did: string; proof: string } {
+  if (scope === "tasks") {
+    return {
+      did: W3UP_TASKS_SPACE_DID || W3UP_SPACE_DID,
+      proof: W3UP_TASKS_SPACE_PROOF || W3UP_SPACE_PROOF,
+    };
+  }
+
+  if (scope === "messages") {
+    return {
+      did: W3UP_MESSAGES_SPACE_DID || W3UP_SPACE_DID,
+      proof: W3UP_MESSAGES_SPACE_PROOF || W3UP_SPACE_PROOF,
+    };
+  }
+
+  return {
+    did: W3UP_DATA_SPACE_DID || W3UP_SPACE_DID,
+    proof: W3UP_DATA_SPACE_PROOF || W3UP_SPACE_PROOF,
+  };
+}
 
 function promptUser(question: string): Promise<string> {
   const rl = readline.createInterface({
@@ -60,11 +102,15 @@ function promptUser(question: string): Promise<string> {
 }
 
 async function main() {
-  log.header("🧹 Paperclip — Storacha Space Cleanup");
+  const scope = parseScope(process.argv.slice(2));
+  const { did: configuredDid, proof: configuredProof } = getScopeConfig(scope);
 
-  if (!STORACHA_AGENT_KEY || !W3UP_SPACE_PROOF) {
+  log.header("🧹 Paperclip — Storacha Space Cleanup");
+  log.info(`Scope: ${scope}`);
+
+  if (!STORACHA_AGENT_KEY || !configuredProof) {
     log.error(
-      "Missing STORACHA_AGENT_KEY or W3UP_SPACE_PROOF in CLI config."
+      `Missing STORACHA_AGENT_KEY or scoped proof for "${scope}" in CLI config.`
     );
     log.info("Run: storacha key create && storacha delegation create <did> --base64");
     process.exit(1);
@@ -77,20 +123,19 @@ async function main() {
   const client = await create({ principal, store });
 
   // Add space proof
-  const delegation = await Proof.parse(W3UP_SPACE_PROOF);
+  const delegation = await Proof.parse(configuredProof);
   const space = await client.addSpace(delegation);
-  const spaceDid = (W3UP_SPACE_DID || space.did()) as `did:${string}:${string}`;
+  const spaceDid = (configuredDid || space.did()) as `did:${string}:${string}`;
   await client.setCurrentSpace(spaceDid);
 
-  log.success(`Connected to space: ${spaceDid}`);
+  log.success(`Connected to ${scope} space: ${spaceDid}`);
 
   // List uploads
   log.info("Listing uploads...");
 
-  const uploads: Array<{ root: any }> = [];
+  const uploads: Array<{ root: unknown }> = [];
   let cursor: string | undefined;
 
-  // Paginate through all uploads
   while (true) {
     const page = await client.capability.upload.list({
       cursor,
@@ -113,14 +158,13 @@ async function main() {
   console.log(`\n  Found ${colors.bold}${uploads.length}${colors.reset} upload(s):\n`);
 
   for (const upload of uploads) {
-    console.log(`    📦 ${upload.root.toString()}`);
+    console.log(`    📦 ${String((upload as any).root)}`);
   }
 
   console.log("");
 
-  // Confirm
   const answer = await promptUser(
-    `${colors.yellow}Remove all ${uploads.length} upload(s)?${colors.reset} (y/N): `
+    `${colors.yellow}Remove all ${uploads.length} upload(s) from ${scope}?${colors.reset} (y/N): `
   );
 
   if (answer !== "y" && answer !== "yes") {
@@ -128,17 +172,17 @@ async function main() {
     return;
   }
 
-  // Remove each upload
   let removed = 0;
   let failed = 0;
 
   for (const upload of uploads) {
+    const root = (upload as any).root;
     try {
-      await client.remove(upload.root, { shards: true } as any);
-      log.success(`Removed: ${upload.root.toString()}`);
+      await client.remove(root, { shards: true } as any);
+      log.success(`Removed: ${root.toString()}`);
       removed++;
     } catch (error: any) {
-      log.error(`Failed to remove ${upload.root.toString()}: ${error.message}`);
+      log.error(`Failed to remove ${root.toString()}: ${error.message}`);
       failed++;
     }
   }
@@ -151,7 +195,6 @@ async function main() {
   }
   console.log("");
 
-  // Verify
   const verify = await client.capability.upload.list({ size: 1 });
   if (verify.results.length === 0) {
     log.success("Space is now empty! ✨\n");

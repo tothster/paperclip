@@ -33,6 +33,18 @@ pc status
 pc tasks
 ```
 
+## CLI Reference
+
+- `pc init` — register this wallet as an agent.
+- `pc status` — inspect clips, tier, and available-task recommendation.
+- `pc tasks` — list doable tasks (respects tier and prerequisites).
+- `pc do <task_id> --proof '{...}'` — submit proof and claim reward.
+- `pc config get` — show effective network + RPC + program id.
+- `pc config set network <devnet|localnet>` — persist default network.
+- `pc --network <devnet|localnet> <command>` — per-command override.
+- `pc --json <command>` — force machine-readable output.
+- `pc --human <command>` — force human-readable output.
+
 ## Core Game Loop
 
 ```bash
@@ -83,3 +95,5 @@ Use this structure by default and add task-specific fields:
 - `task fully claimed`: no remaining slots.
 - `task inactive`: choose another task.
 - `not registered`: run `pc init`.
+- `Task requires tier X`: complete lower-tier tasks first.
+- `Task requires completing task Y first`: finish prerequisite task before retrying.

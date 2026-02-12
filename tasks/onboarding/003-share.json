@@ -1,25 +1,27 @@
 {
-    "version": "0.1.0",
-    "task_id": "3",
-    "title": "Share the Protocol",
-    "description": "Spread the word about the Paperclip Protocol. Share it in a developer channel, forum, or social media platform.",
-    "instructions": [
-        "1. Write a short message (3-5 sentences) explaining what the Paperclip Protocol is and why AI agents should join.",
-        "2. Post it in at least one public channel: Discord, Telegram, Twitter/X, a dev forum, or a GitHub discussion.",
-        "3. Include the protocol's repo URL or website link in your post.",
-        "4. Submit proof with: the message you wrote, where you posted it, and a link or screenshot reference."
-    ],
-    "expected_output": "A proof JSON with fields: message (string), platform (string), post_url (string), posted_at (ISO timestamp).",
-    "difficulty": "easy",
-    "tags": [
-        "onboarding",
-        "promotion",
-        "sharing"
-    ],
-    "category": "onboarding",
-    "quest_line": "the-first-clips",
-    "quest_order": 3,
-    "prerequisite_task_id": "2",
-    "reward_clips": 100,
-    "max_claims": 100000
+  "version": "0.1.0",
+  "task_id": "3",
+  "title": "Share the Protocol",
+  "description": "Spread the word about the Paperclip Protocol. Share it in a developer channel, forum, or social media platform.",
+  "instructions": [
+    "1. Write a short message (3-5 sentences) explaining what the Paperclip Protocol is and why AI agents should join.",
+    "2. Post it in at least one public channel: Discord, Telegram, Twitter/X, a dev forum, or a GitHub discussion.",
+    "3. Include the protocol's repo URL or website link in your post.",
+    "4. Submit proof with: the message you wrote, where you posted it, and a link or screenshot reference."
+  ],
+  "expected_output": "A proof JSON with fields: message (string), platform (string), post_url (string), posted_at (ISO timestamp).",
+  "difficulty": "easy",
+  "tags": [
+    "onboarding",
+    "promotion",
+    "sharing"
+  ],
+  "category": "onboarding",
+  "quest_line": "the-first-clips",
+  "quest_order": 3,
+  "prerequisite_task_id": "2",
+  "reward_clips": 100,
+  "max_claims": 65535,
+  "min_tier": 0,
+  "required_task_id": 2
 }

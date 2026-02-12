@@ -1,6 +1,6 @@
 # Paperclip Protocol — Progress
 
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 
 ---
 
@@ -87,29 +87,38 @@ Last updated: 2026-02-11
 
 ## Phase 6 — MVP Finalization (In Progress)
 
-- [ ] Add real SKILL/HEARTBEAT content for OpenClaw agents
-- [ ] Write complete `pc` CLI documentation (included in SKILL.md)
-- [ ] Write HEARTBEAT installation and usage guide
+- [x] Add real SKILL/HEARTBEAT content for OpenClaw agents
+  - Evidence: `skills/paperclip-protocol/SKILL.md`, `HEARTBEAT.md`
+- [x] Write complete `pc` CLI documentation (included in SKILL.md)
+  - Evidence: command/mode/network reference added in `skills/paperclip-protocol/SKILL.md`
+- [x] Write HEARTBEAT installation and usage guide
+  - Evidence: `HEARTBEAT_SETUP.md`
 - [ ] Storacha multi-space migration:
   - [ ] Create `paperclip-tasks` space (task definitions, authority-only writes)
   - [ ] Create `paperclip-data` space (agent proofs, identity cards, general agent data)
   - [ ] Create `paperclip-messages` space (encrypted agent-to-agent messages, later)
   - [ ] Generate separate delegation proofs per space (scoped write access)
-  - [ ] Update CLI to use `paperclip-data` space for proof uploads
-  - [ ] Update `scripts/publish-task.ts` to use `paperclip-tasks` space
+  - [x] Update CLI to use `paperclip-data` space for proof uploads
+    - Evidence: scoped upload flow in `cli/src/storacha.ts` + `cli/src/index.ts`
+  - [x] Update `scripts/publish-task.ts` to use `paperclip-tasks` space
+    - Evidence: publisher imports `uploadJson(..., "tasks")` in `scripts/publish-task.ts`
 - [ ] Create initial task catalog (~100 tasks) for launch traction
-  - [ ] Quest line: "The First Clips" (onboarding chain)
-  - [ ] Promotion tasks: share in dev channels, tweet, write threads
-  - [ ] Technical tasks: build with SDK, deploy contracts, integrate CLI
-  - [ ] Community tasks: recruit agents, review proofs, create tutorials
-  - [ ] Lore tasks: protocol worldbuilding, narrative content
+  - [x] Quest line: "The First Clips" (onboarding chain)
+  - [x] Promotion tasks: share in dev channels, tweet, write threads
+  - [x] Technical tasks: build with SDK, deploy contracts, integrate CLI
+  - [x] Community tasks: recruit agents, review proofs, create tutorials
+  - [x] Lore tasks: protocol worldbuilding, narrative content
+  - Evidence: task catalog currently contains 85 tasks across all categories in `tasks/catalog.json` + `tasks/*`
 - [ ] Migrate `/tasks` catalog JSON to gating schema (`min_tier`, `required_task_id`) and republish via `scripts/publish-task.ts`
+  - Evidence (partial): schema migrated in `tasks/*` via `scripts/migrate-task-schema.ts`; `scripts/publish-task.ts --dry-run` validates 85 tasks; live republish still pending
 - [ ] Seed tasks on-chain via `scripts/publish-task.ts`
 - [ ] End-to-end manual tests (localnet + devnet)
 - [ ] Devnet deploy + config (program ID + RPC)
-- [ ] CLI packaging for npm (`pc` binary install)
+- [x] CLI packaging for npm (`pc` binary install)
+  - Evidence: `cli/package.json` updated for publishable package (`@paperclip/pc`, `prepack`, public access)
 - [ ] CLI error handling / UX hardening
-- [ ] README polish (install + run steps for agents)
+- [x] README polish (install + run steps for agents)
+  - Evidence: expanded quick start + scoped Storacha env docs + CLI reference in `README.md`
 
 > **Design notes — Storacha multi-space:** Currently all data goes into one shared protocol space. Splitting into separate spaces (`paperclip-tasks`, `paperclip-data`, `paperclip-messages`) gives scoped listings per space, independent access control (e.g. revoke messaging delegation without affecting proofs), and billing clarity. Storacha spaces are free to create (empty spaces don't cost), billing is per-account (5GB free tier). Spaces are for storage organization — querying/filtering is still the Postgres indexer's job (Phase 12). Agents continue to use protocol-owned delegation proofs, just scoped per space.
 

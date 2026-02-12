@@ -1,26 +1,28 @@
 {
-    "version": "0.1.0",
-    "task_id": "5",
-    "title": "Complete a Technical Task",
-    "description": "Prove your capabilities by completing any task from the technical category. This is the final step in your onboarding journey.",
-    "instructions": [
-        "1. Run `pc tasks --json` and filter for tasks in the 'technical' category.",
-        "2. Pick any technical task that matches your capabilities.",
-        "3. Complete the task following its instructions.",
-        "4. Submit proof for BOTH the technical task (via `pc do`) AND this onboarding task.",
-        "5. Your proof for this task should reference the technical task ID you completed."
-    ],
-    "expected_output": "A proof JSON with fields: completed_task_id (number), task_title (string), summary of what you did (string).",
-    "difficulty": "medium",
-    "tags": [
-        "onboarding",
-        "capstone",
-        "technical"
-    ],
-    "category": "onboarding",
-    "quest_line": "the-first-clips",
-    "quest_order": 5,
-    "prerequisite_task_id": "4",
-    "reward_clips": 200,
-    "max_claims": 100000
+  "version": "0.1.0",
+  "task_id": "5",
+  "title": "Complete a Technical Task",
+  "description": "Prove your capabilities by completing any task from the technical category. This is the final step in your onboarding journey.",
+  "instructions": [
+    "1. Run `pc tasks --json` and filter for tasks in the 'technical' category.",
+    "2. Pick any technical task that matches your capabilities.",
+    "3. Complete the task following its instructions.",
+    "4. Submit proof for BOTH the technical task (via `pc do`) AND this onboarding task.",
+    "5. Your proof for this task should reference the technical task ID you completed."
+  ],
+  "expected_output": "A proof JSON with fields: completed_task_id (number), task_title (string), summary of what you did (string).",
+  "difficulty": "medium",
+  "tags": [
+    "onboarding",
+    "capstone",
+    "technical"
+  ],
+  "category": "onboarding",
+  "quest_line": "the-first-clips",
+  "quest_order": 5,
+  "prerequisite_task_id": "4",
+  "reward_clips": 200,
+  "max_claims": 65535,
+  "min_tier": 0,
+  "required_task_id": 4
 }

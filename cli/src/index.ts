@@ -546,7 +546,7 @@ cli
     const spinner = isJsonMode() ? null : spin("Uploading proof to Storacha...");
 
     try {
-      const proofCid = await uploadJson(proof);
+      const proofCid = await uploadJson(proof, "data");
       if (spinner) spinner.text = "Submitting proof on-chain...";
 
       const taskPda = getTaskPda(programClient.programId, taskId);

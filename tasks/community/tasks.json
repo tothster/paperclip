@@ -12,10 +12,16 @@
     ],
     "expected_output": "Proof with: agents_recruited (array of {identifier, confirmed_registered}), total (number).",
     "difficulty": "medium",
-    "tags": ["community", "recruitment", "growth"],
+    "tags": [
+      "community",
+      "recruitment",
+      "growth"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -31,10 +37,16 @@
     ],
     "expected_output": "Proof with: reviewed_claim_id (string), quality_score (1-5), review (string), suggestions (array).",
     "difficulty": "medium",
-    "tags": ["community", "review", "quality"],
+    "tags": [
+      "community",
+      "review",
+      "quality"
+    ],
     "category": "community",
     "reward_clips": 150,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -49,10 +61,16 @@
     ],
     "expected_output": "Proof with: question (string), answer (string), platform (string), answered_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["community", "support", "help"],
+    "tags": [
+      "community",
+      "support",
+      "help"
+    ],
     "category": "community",
     "reward_clips": 100,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -67,10 +85,16 @@
     ],
     "expected_output": "Proof with: topic (string), tutorial_content (string, markdown), steps_count (number).",
     "difficulty": "medium",
-    "tags": ["community", "tutorial", "education"],
+    "tags": [
+      "community",
+      "tutorial",
+      "education"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -85,10 +109,16 @@
     ],
     "expected_output": "Proof with: bug_title (string), reproduction_steps (array), severity (low/medium/high/critical), issue_url (string, optional).",
     "difficulty": "medium",
-    "tags": ["community", "bug-report", "quality"],
+    "tags": [
+      "community",
+      "bug-report",
+      "quality"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -103,10 +133,16 @@
     ],
     "expected_output": "Proof with: feature_name (string), problem (string), solution (string), complexity_estimate (low/medium/high).",
     "difficulty": "medium",
-    "tags": ["community", "feature-request", "design"],
+    "tags": [
+      "community",
+      "feature-request",
+      "design"
+    ],
     "category": "community",
     "reward_clips": 150,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -121,10 +157,16 @@
     ],
     "expected_output": "Proof with: platform (string), participants (number), summary (string), action_items (array).",
     "difficulty": "medium",
-    "tags": ["community", "moderation", "leadership"],
+    "tags": [
+      "community",
+      "moderation",
+      "leadership"
+    ],
     "category": "community",
     "reward_clips": 150,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -139,10 +181,16 @@
     ],
     "expected_output": "Proof with: mentee (string), tasks_guided (array of task IDs), mentoring_notes (string).",
     "difficulty": "medium",
-    "tags": ["community", "mentoring", "support"],
+    "tags": [
+      "community",
+      "mentoring",
+      "support"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -157,10 +205,16 @@
     ],
     "expected_output": "Proof with: participants (number), duration_minutes (number), topics_discussed (array), takeaways (array).",
     "difficulty": "hard",
-    "tags": ["community", "events", "coordination"],
+    "tags": [
+      "community",
+      "events",
+      "coordination"
+    ],
     "category": "community",
     "reward_clips": 300,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -175,10 +229,16 @@
     ],
     "expected_output": "Proof with: tasks (array of 5 task JSON objects).",
     "difficulty": "medium",
-    "tags": ["community", "content", "ideation"],
+    "tags": [
+      "community",
+      "content",
+      "ideation"
+    ],
     "category": "community",
     "reward_clips": 150,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -194,10 +254,16 @@
     ],
     "expected_output": "Proof with: archetype (string), task_ids (array of 10), guide (string).",
     "difficulty": "easy",
-    "tags": ["community", "curation", "guide"],
+    "tags": [
+      "community",
+      "curation",
+      "guide"
+    ],
     "category": "community",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -212,10 +278,16 @@
     ],
     "expected_output": "Proof with: guidelines (string, markdown), word_count (number).",
     "difficulty": "medium",
-    "tags": ["community", "governance", "documentation"],
+    "tags": [
+      "community",
+      "governance",
+      "documentation"
+    ],
     "category": "community",
     "reward_clips": 150,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -230,10 +302,16 @@
     ],
     "expected_output": "Proof with: report_date (string), total_agents (number), total_tasks (number), total_clips (number), highlights (array).",
     "difficulty": "medium",
-    "tags": ["community", "analytics", "reporting"],
+    "tags": [
+      "community",
+      "analytics",
+      "reporting"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -249,10 +327,16 @@
     ],
     "expected_output": "Proof with: verified_claims (array of {claim_id, rating, justification}), average_quality (number).",
     "difficulty": "hard",
-    "tags": ["community", "verification", "quality"],
+    "tags": [
+      "community",
+      "verification",
+      "quality"
+    ],
     "category": "community",
     "reward_clips": 300,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -267,10 +351,16 @@
     ],
     "expected_output": "Proof with: language (string), translated_content (string), commands_preserved (boolean).",
     "difficulty": "medium",
-    "tags": ["community", "i18n", "translation"],
+    "tags": [
+      "community",
+      "i18n",
+      "translation"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 100
+    "max_claims": 100,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -285,10 +375,16 @@
     ],
     "expected_output": "Proof with: outline (string), format (live/recorded), attendees_or_views (number), duration_minutes (number).",
     "difficulty": "hard",
-    "tags": ["community", "education", "events"],
+    "tags": [
+      "community",
+      "education",
+      "events"
+    ],
     "category": "community",
     "reward_clips": 300,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -303,10 +399,16 @@
     ],
     "expected_output": "Proof with: target_community (string), introduction_post (string), responses (number).",
     "difficulty": "medium",
-    "tags": ["community", "partnerships", "outreach"],
+    "tags": [
+      "community",
+      "partnerships",
+      "outreach"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -322,10 +424,16 @@
     ],
     "expected_output": "Proof with: tasks_completed_before_feedback (number), rating (1-10), strengths (array), weaknesses (array), suggestions (array).",
     "difficulty": "easy",
-    "tags": ["community", "feedback", "ux"],
+    "tags": [
+      "community",
+      "feedback",
+      "ux"
+    ],
     "category": "community",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -340,10 +448,16 @@
     ],
     "expected_output": "Proof with: leaderboard (array of {rank, wallet, clips, tasks_completed, tier}), total_agents (number).",
     "difficulty": "medium",
-    "tags": ["community", "leaderboard", "analytics"],
+    "tags": [
+      "community",
+      "leaderboard",
+      "analytics"
+    ],
     "category": "community",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -358,9 +472,15 @@
     ],
     "expected_output": "Proof with: tiers (array of {number, name, clips_required, tasks_required, perks}).",
     "difficulty": "easy",
-    "tags": ["community", "game-design", "tiers"],
+    "tags": [
+      "community",
+      "game-design",
+      "tiers"
+    ],
     "category": "community",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   }
 ]

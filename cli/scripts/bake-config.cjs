@@ -97,6 +97,14 @@ function main() {
     PAPERCLIP_WALLET_TYPE: optional(source.PAPERCLIP_WALLET_TYPE),
     STORACHA_GATEWAY_URL: optional(source.STORACHA_GATEWAY_URL),
     STORACHA_AGENT_KEY: pick(source, "STORACHA_AGENT_KEY"),
+    W3UP_DATA_SPACE_DID:
+      optional(source.W3UP_DATA_SPACE_DID) || pick(source, "W3UP_SPACE_DID"),
+    W3UP_DATA_SPACE_PROOF:
+      optional(source.W3UP_DATA_SPACE_PROOF) || pick(source, "W3UP_SPACE_PROOF"),
+    W3UP_TASKS_SPACE_DID: optional(source.W3UP_TASKS_SPACE_DID),
+    W3UP_TASKS_SPACE_PROOF: optional(source.W3UP_TASKS_SPACE_PROOF),
+    W3UP_MESSAGES_SPACE_DID: optional(source.W3UP_MESSAGES_SPACE_DID),
+    W3UP_MESSAGES_SPACE_PROOF: optional(source.W3UP_MESSAGES_SPACE_PROOF),
     W3UP_SPACE_DID: pick(source, "W3UP_SPACE_DID"),
     W3UP_SPACE_PROOF: pick(source, "W3UP_SPACE_PROOF"),
     PRIVY_APP_ID: optional(source.PRIVY_APP_ID),

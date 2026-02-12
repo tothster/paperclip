@@ -17,6 +17,12 @@ interface BakedConfig {
   PAPERCLIP_WALLET_TYPE?: string;
   STORACHA_GATEWAY_URL?: string;
   STORACHA_AGENT_KEY?: string;
+  W3UP_DATA_SPACE_DID?: string;
+  W3UP_DATA_SPACE_PROOF?: string;
+  W3UP_TASKS_SPACE_DID?: string;
+  W3UP_TASKS_SPACE_PROOF?: string;
+  W3UP_MESSAGES_SPACE_DID?: string;
+  W3UP_MESSAGES_SPACE_PROOF?: string;
   W3UP_SPACE_DID?: string;
   W3UP_SPACE_PROOF?: string;
   PRIVY_APP_ID?: string;
@@ -115,6 +121,32 @@ export const STORACHA_AGENT_KEY =
 
 export const W3UP_SPACE_PROOF =
   clean(process.env.W3UP_SPACE_PROOF) || clean(baked.W3UP_SPACE_PROOF) || "";
+
+export const W3UP_DATA_SPACE_DID =
+  clean(process.env.W3UP_DATA_SPACE_DID) || clean(baked.W3UP_DATA_SPACE_DID) || "";
+
+export const W3UP_DATA_SPACE_PROOF =
+  clean(process.env.W3UP_DATA_SPACE_PROOF) ||
+  clean(baked.W3UP_DATA_SPACE_PROOF) ||
+  "";
+
+export const W3UP_TASKS_SPACE_DID =
+  clean(process.env.W3UP_TASKS_SPACE_DID) || clean(baked.W3UP_TASKS_SPACE_DID) || "";
+
+export const W3UP_TASKS_SPACE_PROOF =
+  clean(process.env.W3UP_TASKS_SPACE_PROOF) ||
+  clean(baked.W3UP_TASKS_SPACE_PROOF) ||
+  "";
+
+export const W3UP_MESSAGES_SPACE_DID =
+  clean(process.env.W3UP_MESSAGES_SPACE_DID) ||
+  clean(baked.W3UP_MESSAGES_SPACE_DID) ||
+  "";
+
+export const W3UP_MESSAGES_SPACE_PROOF =
+  clean(process.env.W3UP_MESSAGES_SPACE_PROOF) ||
+  clean(baked.W3UP_MESSAGES_SPACE_PROOF) ||
+  "";
 
 export const PRIVY_APP_ID =
   clean(process.env.PRIVY_APP_ID) || clean(baked.PRIVY_APP_ID) || "";

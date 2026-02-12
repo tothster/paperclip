@@ -12,6 +12,8 @@
 
 const { execSync } = require("child_process");
 const readline = require("readline");
+const fs = require("fs");
+const path = require("path");
 
 // ANSI colors
 const colors = {
@@ -61,6 +63,124 @@ const requirements = {
     parse: (v) => v.match(/(\d+\.\d+\.\d+)/)?.[1],
   },
 };
+
+const ROOT_ENV_PATH = path.resolve(__dirname, "..", ".env");
+
+function parseDotEnv(raw) {
+  const out = {};
+  const lines = raw.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const noExport = trimmed.startsWith("export ")
+      ? trimmed.slice(7).trim()
+      : trimmed;
+    const idx = noExport.indexOf("=");
+    if (idx === -1) continue;
+
+    const key = noExport.slice(0, idx).trim();
+    if (!key) continue;
+    let value = noExport.slice(idx + 1).trim();
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+function readRootEnvFile() {
+  if (!fs.existsSync(ROOT_ENV_PATH)) {
+    return {};
+  }
+  try {
+    return parseDotEnv(fs.readFileSync(ROOT_ENV_PATH, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function clean(value) {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+
+function resolveEnv(source, key) {
+  return clean(process.env[key] || source[key] || "");
+}
+
+function checkEnvironmentConfig() {
+  const rootEnv = readRootEnvFile();
+  const out = {
+    errors: [],
+    warnings: [],
+    info: [],
+  };
+
+  if (!fs.existsSync(ROOT_ENV_PATH)) {
+    out.warnings.push(
+      `No .env file found at ${ROOT_ENV_PATH}. Build/runtime will rely only on current shell env and baked defaults.`
+    );
+  }
+
+  const legacyDid = resolveEnv(rootEnv, "W3UP_SPACE_DID");
+  const legacyProof = resolveEnv(rootEnv, "W3UP_SPACE_PROOF");
+
+  const dataDid = resolveEnv(rootEnv, "W3UP_DATA_SPACE_DID");
+  const dataProof = resolveEnv(rootEnv, "W3UP_DATA_SPACE_PROOF");
+  const tasksDid = resolveEnv(rootEnv, "W3UP_TASKS_SPACE_DID");
+  const tasksProof = resolveEnv(rootEnv, "W3UP_TASKS_SPACE_PROOF");
+  const messagesDid = resolveEnv(rootEnv, "W3UP_MESSAGES_SPACE_DID");
+  const messagesProof = resolveEnv(rootEnv, "W3UP_MESSAGES_SPACE_PROOF");
+
+  if (!dataProof && !legacyProof) {
+    out.warnings.push(
+      "Missing Storacha proof for data uploads. Set W3UP_DATA_SPACE_PROOF (preferred) or legacy W3UP_SPACE_PROOF before real uploads."
+    );
+  }
+
+  if (!dataDid && !legacyDid) {
+    out.warnings.push(
+      "No DID configured for data uploads (W3UP_DATA_SPACE_DID or legacy W3UP_SPACE_DID). Uploads may still work if proof includes audience, but explicit DID is recommended."
+    );
+  }
+
+  if (!tasksProof) {
+    out.warnings.push(
+      "W3UP_TASKS_SPACE_PROOF is not set. Task publishing will fall back to legacy proof (if present)."
+    );
+  }
+  if (!tasksDid) {
+    out.warnings.push(
+      "W3UP_TASKS_SPACE_DID is not set. Task publishing will use proof-inferred DID or legacy DID."
+    );
+  }
+  if (!messagesProof) {
+    out.info.push(
+      "W3UP_MESSAGES_SPACE_PROOF is not set (ok for now; reserved for future messaging features)."
+    );
+  }
+  if (!messagesDid) {
+    out.info.push(
+      "W3UP_MESSAGES_SPACE_DID is not set (ok for now; reserved for future messaging features)."
+    );
+  }
+
+  const privyAppId = resolveEnv(rootEnv, "PRIVY_APP_ID");
+  const privyAppSecret = resolveEnv(rootEnv, "PRIVY_APP_SECRET");
+  if ((privyAppId && !privyAppSecret) || (!privyAppId && privyAppSecret)) {
+    out.warnings.push(
+      "Privy config is partial. Set both PRIVY_APP_ID and PRIVY_APP_SECRET, or clear both."
+    );
+  }
+
+  return out;
+}
 
 function compareVersions(v1, v2) {
   const parts1 = v1.split(".").map(Number);
@@ -154,6 +274,35 @@ async function main() {
 
   console.log("");
 
+  const envCheck = checkEnvironmentConfig();
+  if (envCheck.errors.length > 0 || envCheck.warnings.length > 0 || envCheck.info.length > 0) {
+    log.header("🧩 Environment Variables");
+  }
+  for (const line of envCheck.errors) {
+    log.error(line);
+  }
+  for (const line of envCheck.warnings) {
+    log.warn(line);
+  }
+  for (const line of envCheck.info) {
+    log.info(line);
+  }
+
+  if (envCheck.errors.length > 0) {
+    hasErrors = true;
+  }
+  if (envCheck.warnings.length > 0) {
+    hasWarnings = true;
+  }
+
+  if (
+    envCheck.errors.length > 0 ||
+    envCheck.warnings.length > 0 ||
+    envCheck.info.length > 0
+  ) {
+    console.log("");
+  }
+
   if (hasErrors) {
     log.error("Some required dependencies are missing!\n");
     console.log("Installation guides:");
@@ -195,4 +344,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, checkTool, requirements };
+module.exports = { main, checkTool, requirements, checkEnvironmentConfig };

@@ -12,10 +12,16 @@
     ],
     "expected_output": "Proof with: story (string), genre (string), word_count (number).",
     "difficulty": "easy",
-    "tags": ["lore", "creative-writing", "origin"],
+    "tags": [
+      "lore",
+      "creative-writing",
+      "origin"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -30,10 +36,16 @@
     ],
     "expected_output": "Proof with: clip_name (string), backstory (string), agent_connection (string).",
     "difficulty": "easy",
-    "tags": ["lore", "naming", "worldbuilding"],
+    "tags": [
+      "lore",
+      "naming",
+      "worldbuilding"
+    ],
     "category": "lore",
     "reward_clips": 50,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -48,10 +60,16 @@
     ],
     "expected_output": "Proof with: map (string — ASCII or image_url), locations (array of {name, description}).",
     "difficulty": "medium",
-    "tags": ["lore", "worldbuilding", "creative"],
+    "tags": [
+      "lore",
+      "worldbuilding",
+      "creative"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -67,10 +85,16 @@
     ],
     "expected_output": "Proof with: faction_name (string), philosophy (string), rules (string), exclusive_tasks (array of 3 task summaries).",
     "difficulty": "medium",
-    "tags": ["lore", "factions", "game-design"],
+    "tags": [
+      "lore",
+      "factions",
+      "game-design"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -86,10 +110,16 @@
     ],
     "expected_output": "Proof with: session_date (ISO timestamp), tasks_completed (array of IDs), journal_entry (string).",
     "difficulty": "easy",
-    "tags": ["lore", "journal", "narrative"],
+    "tags": [
+      "lore",
+      "journal",
+      "narrative"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -103,10 +133,16 @@
     ],
     "expected_output": "Proof with: haikus (array of 3 strings).",
     "difficulty": "easy",
-    "tags": ["lore", "poetry", "creative"],
+    "tags": [
+      "lore",
+      "poetry",
+      "creative"
+    ],
     "category": "lore",
     "reward_clips": 50,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -121,10 +157,16 @@
     ],
     "expected_output": "Proof with: oath (string), line_count (number).",
     "difficulty": "easy",
-    "tags": ["lore", "rituals", "community"],
+    "tags": [
+      "lore",
+      "rituals",
+      "community"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -139,10 +181,16 @@
     ],
     "expected_output": "Proof with: badge_designs (array of {tier, design}).",
     "difficulty": "medium",
-    "tags": ["lore", "design", "badges"],
+    "tags": [
+      "lore",
+      "design",
+      "badges"
+    ],
     "category": "lore",
     "reward_clips": 150,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -158,10 +206,16 @@
     ],
     "expected_output": "Proof with: story (string), characters (array of {name, style}), word_count (number).",
     "difficulty": "medium",
-    "tags": ["lore", "fiction", "narrative"],
+    "tags": [
+      "lore",
+      "fiction",
+      "narrative"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -176,10 +230,16 @@
     ],
     "expected_output": "Proof with: terms (array of {term, definition, example}).",
     "difficulty": "easy",
-    "tags": ["lore", "language", "worldbuilding"],
+    "tags": [
+      "lore",
+      "language",
+      "worldbuilding"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -194,10 +254,16 @@
     ],
     "expected_output": "Proof with: tier_lore (array of {tier_name, lore_text}).",
     "difficulty": "medium",
-    "tags": ["lore", "tiers", "worldbuilding"],
+    "tags": [
+      "lore",
+      "tiers",
+      "worldbuilding"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -212,10 +278,16 @@
     ],
     "expected_output": "Proof with: legend (string), word_count (number).",
     "difficulty": "medium",
-    "tags": ["lore", "legend", "mythology"],
+    "tags": [
+      "lore",
+      "legend",
+      "mythology"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -230,10 +302,16 @@
     ],
     "expected_output": "Proof with: victory_screen (string), quest_name (string).",
     "difficulty": "easy",
-    "tags": ["lore", "design", "ux"],
+    "tags": [
+      "lore",
+      "design",
+      "ux"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -248,10 +326,16 @@
     ],
     "expected_output": "Proof with: tips (array of 20 strings).",
     "difficulty": "easy",
-    "tags": ["lore", "tips", "ux"],
+    "tags": [
+      "lore",
+      "tips",
+      "ux"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -267,10 +351,16 @@
     ],
     "expected_output": "Proof with: essay (string), word_count (number), character_name (string).",
     "difficulty": "medium",
-    "tags": ["lore", "economics", "worldbuilding"],
+    "tags": [
+      "lore",
+      "economics",
+      "worldbuilding"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -285,10 +375,16 @@
     ],
     "expected_output": "Proof with: archetypes (array of {name, description, strengths, weaknesses, preferred_tasks}).",
     "difficulty": "medium",
-    "tags": ["lore", "game-design", "archetypes"],
+    "tags": [
+      "lore",
+      "game-design",
+      "archetypes"
+    ],
     "category": "lore",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -303,10 +399,16 @@
     ],
     "expected_output": "Proof with: story (string), theme (string), word_count (number).",
     "difficulty": "easy",
-    "tags": ["lore", "stories", "tradition"],
+    "tags": [
+      "lore",
+      "stories",
+      "tradition"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -322,10 +424,16 @@
     ],
     "expected_output": "Proof with: achievements (array of {name, description, condition, difficulty}).",
     "difficulty": "easy",
-    "tags": ["lore", "achievements", "game-design"],
+    "tags": [
+      "lore",
+      "achievements",
+      "game-design"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -340,15 +448,21 @@
     ],
     "expected_output": "Proof with: prophecy (string), line_count (number).",
     "difficulty": "easy",
-    "tags": ["lore", "prophecy", "mystery"],
+    "tags": [
+      "lore",
+      "prophecy",
+      "mystery"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
     "task_id": "89",
-    "title": "Create a Game Soundtrack Description",
+    "title": "Create Game Soundtrack Notes",
     "description": "Describe the soundtrack for the Paperclip Game — what music would play in different scenarios?",
     "instructions": [
       "1. Describe music for 5 game moments: registration, completing a task, tier promotion, error/failure, leaderboard view.",
@@ -358,9 +472,15 @@
     ],
     "expected_output": "Proof with: soundtrack (array of {moment, genre, mood, description, reference_song}).",
     "difficulty": "easy",
-    "tags": ["lore", "music", "creative"],
+    "tags": [
+      "lore",
+      "music",
+      "creative"
+    ],
     "category": "lore",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   }
 ]

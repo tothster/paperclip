@@ -13,10 +13,16 @@
     ],
     "expected_output": "Proof with: commands_run (array), outputs (array of JSON), errors (array or null).",
     "difficulty": "easy",
-    "tags": ["technical", "testing", "cli"],
+    "tags": [
+      "technical",
+      "testing",
+      "cli"
+    ],
     "category": "technical",
     "reward_clips": 100,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -32,10 +38,16 @@
     ],
     "expected_output": "Proof with: build_output (string), version (string), build_time_seconds (number).",
     "difficulty": "easy",
-    "tags": ["technical", "build", "setup"],
+    "tags": [
+      "technical",
+      "build",
+      "setup"
+    ],
     "category": "technical",
     "reward_clips": 100,
-    "max_claims": 50000
+    "max_claims": 50000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -50,10 +62,16 @@
     ],
     "expected_output": "Proof with: test_code (string), test_name (string), result (pass/fail), file_path (string).",
     "difficulty": "medium",
-    "tags": ["technical", "testing", "quality"],
+    "tags": [
+      "technical",
+      "testing",
+      "quality"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -69,10 +87,16 @@
     ],
     "expected_output": "Proof with: mock_proofs (array of 10 proof objects).",
     "difficulty": "easy",
-    "tags": ["technical", "mock-data", "api"],
+    "tags": [
+      "technical",
+      "mock-data",
+      "api"
+    ],
     "category": "technical",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -87,10 +111,16 @@
     ],
     "expected_output": "Proof with: test_code (string), output (string), assertions_passed (number).",
     "difficulty": "hard",
-    "tags": ["technical", "testing", "integration"],
+    "tags": [
+      "technical",
+      "testing",
+      "integration"
+    ],
     "category": "technical",
     "reward_clips": 300,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -105,10 +135,16 @@
     ],
     "expected_output": "Proof with: rpc_calls_count (number), optimizations (array of strings), report (string).",
     "difficulty": "medium",
-    "tags": ["technical", "performance", "optimization"],
+    "tags": [
+      "technical",
+      "performance",
+      "optimization"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -124,10 +160,16 @@
     ],
     "expected_output": "Proof with: schema (JSON Schema object), fields_documented (number).",
     "difficulty": "medium",
-    "tags": ["technical", "schema", "validation"],
+    "tags": [
+      "technical",
+      "schema",
+      "validation"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -142,10 +184,16 @@
     ],
     "expected_output": "Proof with: script_code (string), language (string), sample_output (string).",
     "difficulty": "medium",
-    "tags": ["technical", "tooling", "ui"],
+    "tags": [
+      "technical",
+      "tooling",
+      "ui"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -161,10 +209,16 @@
     ],
     "expected_output": "Proof with: language (string), code (string), functions_implemented (array).",
     "difficulty": "hard",
-    "tags": ["technical", "sdk", "library"],
+    "tags": [
+      "technical",
+      "sdk",
+      "library"
+    ],
     "category": "technical",
     "reward_clips": 300,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -180,10 +234,16 @@
     ],
     "expected_output": "Proof with: errors_audited (number), improvements (array of {current, suggested, clarity_score}).",
     "difficulty": "medium",
-    "tags": ["technical", "ux", "quality"],
+    "tags": [
+      "technical",
+      "ux",
+      "quality"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -199,10 +259,16 @@
     ],
     "expected_output": "Proof with: program_id (string), deploy_tx (string), network (string), agent_pubkey (string).",
     "difficulty": "hard",
-    "tags": ["technical", "deployment", "devnet"],
+    "tags": [
+      "technical",
+      "deployment",
+      "devnet"
+    ],
     "category": "technical",
     "reward_clips": 300,
-    "max_claims": 100
+    "max_claims": 100,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -217,10 +283,16 @@
     ],
     "expected_output": "Proof with: sequential_avg_ms (number), concurrent_avg_ms (number), success_rate (number), total_uploads (number).",
     "difficulty": "medium",
-    "tags": ["technical", "performance", "storacha"],
+    "tags": [
+      "technical",
+      "performance",
+      "storacha"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -235,10 +307,16 @@
     ],
     "expected_output": "Proof with: dockerfile (string), compose_yaml (string), test_output (string).",
     "difficulty": "hard",
-    "tags": ["technical", "docker", "devops"],
+    "tags": [
+      "technical",
+      "docker",
+      "devops"
+    ],
     "category": "technical",
     "reward_clips": 300,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -254,10 +332,16 @@
     ],
     "expected_output": "Proof with: accounts (array of {name, bytes, rent_sol}), total_estimate_sol (number).",
     "difficulty": "medium",
-    "tags": ["technical", "economics", "solana"],
+    "tags": [
+      "technical",
+      "economics",
+      "solana"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -272,10 +356,16 @@
     ],
     "expected_output": "Proof with: workflow_yaml (string), steps_count (number), triggers (array).",
     "difficulty": "medium",
-    "tags": ["technical", "ci-cd", "automation"],
+    "tags": [
+      "technical",
+      "ci-cd",
+      "automation"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -291,10 +381,16 @@
     ],
     "expected_output": "Proof with: files_reviewed (number), issues_found (array of {file, severity, description}), overall_rating (string).",
     "difficulty": "hard",
-    "tags": ["technical", "security", "review"],
+    "tags": [
+      "technical",
+      "security",
+      "review"
+    ],
     "category": "technical",
     "reward_clips": 300,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -309,10 +405,16 @@
     ],
     "expected_output": "Proof with: code (string), errors_mapped (number), example_output (string).",
     "difficulty": "medium",
-    "tags": ["technical", "error-handling", "ux"],
+    "tags": [
+      "technical",
+      "error-handling",
+      "ux"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -327,10 +429,16 @@
     ],
     "expected_output": "Proof with: script_code (string), sample_output (string), fields_displayed (array).",
     "difficulty": "medium",
-    "tags": ["technical", "monitoring", "devops"],
+    "tags": [
+      "technical",
+      "monitoring",
+      "devops"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -345,10 +453,16 @@
     ],
     "expected_output": "Proof with: types_code (string), interfaces_defined (number).",
     "difficulty": "easy",
-    "tags": ["technical", "typescript", "types"],
+    "tags": [
+      "technical",
+      "typescript",
+      "types"
+    ],
     "category": "technical",
     "reward_clips": 100,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -363,9 +477,15 @@
     ],
     "expected_output": "Proof with: test_cases (number), crashes_found (number), results (array of {input, behavior}).",
     "difficulty": "medium",
-    "tags": ["technical", "fuzzing", "security"],
+    "tags": [
+      "technical",
+      "fuzzing",
+      "security"
+    ],
     "category": "technical",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   }
 ]

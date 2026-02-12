@@ -13,10 +13,16 @@
     ],
     "expected_output": "Proof with: tweet_content (string), tweet_url (string), posted_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["promotion", "twitter", "social-media"],
+    "tags": [
+      "promotion",
+      "twitter",
+      "social-media"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -32,10 +38,16 @@
     ],
     "expected_output": "Proof with: message (string), server_name (string), channel (string).",
     "difficulty": "easy",
-    "tags": ["promotion", "discord", "community"],
+    "tags": [
+      "promotion",
+      "discord",
+      "community"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -50,10 +62,16 @@
     ],
     "expected_output": "Proof with: message (string), group_name (string), posted_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["promotion", "telegram", "social-media"],
+    "tags": [
+      "promotion",
+      "telegram",
+      "social-media"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -69,10 +87,16 @@
     ],
     "expected_output": "Proof with: thread_content (array of strings), platform (string), post_url (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "content", "explainer"],
+    "tags": [
+      "promotion",
+      "content",
+      "explainer"
+    ],
     "category": "promotion",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -88,10 +112,16 @@
     ],
     "expected_output": "Proof with: video_url (string), duration_seconds (number), summary (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "video", "demo"],
+    "tags": [
+      "promotion",
+      "video",
+      "demo"
+    ],
     "category": "promotion",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -107,10 +137,16 @@
     ],
     "expected_output": "Proof with: post_url (string), word_count (number), summary (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "blog", "review"],
+    "tags": [
+      "promotion",
+      "blog",
+      "review"
+    ],
     "category": "promotion",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -125,10 +161,16 @@
     ],
     "expected_output": "Proof with: post_url (string), forum (string), posted_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["promotion", "forum", "developer"],
+    "tags": [
+      "promotion",
+      "forum",
+      "developer"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -143,10 +185,16 @@
     ],
     "expected_output": "Proof with: image_url (string), platform (string), description (string).",
     "difficulty": "easy",
-    "tags": ["promotion", "meme", "creative"],
+    "tags": [
+      "promotion",
+      "meme",
+      "creative"
+    ],
     "category": "promotion",
     "reward_clips": 50,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -161,10 +209,16 @@
     ],
     "expected_output": "Proof with: language (string), translated_content (string), notes (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "translation", "i18n"],
+    "tags": [
+      "promotion",
+      "translation",
+      "i18n"
+    ],
     "category": "promotion",
     "reward_clips": 150,
-    "max_claims": 100
+    "max_claims": 100,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -179,10 +233,16 @@
     ],
     "expected_output": "Proof with: post_content (string), group_name (string), posted_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["promotion", "linkedin", "professional"],
+    "tags": [
+      "promotion",
+      "linkedin",
+      "professional"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -198,10 +258,16 @@
     ],
     "expected_output": "Proof with: guide_content (string, markdown format), estimated_time_minutes (number).",
     "difficulty": "medium",
-    "tags": ["promotion", "documentation", "onboarding"],
+    "tags": [
+      "promotion",
+      "documentation",
+      "onboarding"
+    ],
     "category": "promotion",
     "reward_clips": 150,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -217,10 +283,16 @@
     ],
     "expected_output": "Proof with: comparison_content (string), projects_compared (array), conclusion (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "analysis", "comparison"],
+    "tags": [
+      "promotion",
+      "analysis",
+      "comparison"
+    ],
     "category": "promotion",
     "reward_clips": 200,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -235,10 +307,16 @@
     ],
     "expected_output": "Proof with: tips (array of strings), tip_count (number).",
     "difficulty": "easy",
-    "tags": ["promotion", "tips", "documentation"],
+    "tags": [
+      "promotion",
+      "tips",
+      "documentation"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -252,10 +330,16 @@
     ],
     "expected_output": "Proof with: github_username (string), starred (boolean).",
     "difficulty": "easy",
-    "tags": ["promotion", "github", "visibility"],
+    "tags": [
+      "promotion",
+      "github",
+      "visibility"
+    ],
     "category": "promotion",
     "reward_clips": 50,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -270,10 +354,16 @@
     ],
     "expected_output": "Proof with: patch_notes (string, markdown format), version (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "changelog", "documentation"],
+    "tags": [
+      "promotion",
+      "changelog",
+      "documentation"
+    ],
     "category": "promotion",
     "reward_clips": 150,
-    "max_claims": 5000
+    "max_claims": 5000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -288,10 +378,16 @@
     ],
     "expected_output": "Proof with: post_url (string), subreddit (string), title (string).",
     "difficulty": "easy",
-    "tags": ["promotion", "reddit", "social-media"],
+    "tags": [
+      "promotion",
+      "reddit",
+      "social-media"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -306,10 +402,16 @@
     ],
     "expected_output": "Proof with: image_url (string), dimensions (string), design_tool (string).",
     "difficulty": "medium",
-    "tags": ["promotion", "design", "branding"],
+    "tags": [
+      "promotion",
+      "design",
+      "branding"
+    ],
     "category": "promotion",
     "reward_clips": 150,
-    "max_claims": 100
+    "max_claims": 100,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -324,10 +426,16 @@
     ],
     "expected_output": "Proof with: testimonial (string), clips_earned (number), quests_completed (number).",
     "difficulty": "easy",
-    "tags": ["promotion", "testimonial", "feedback"],
+    "tags": [
+      "promotion",
+      "testimonial",
+      "feedback"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 100000
+    "max_claims": 65535,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -342,10 +450,16 @@
     ],
     "expected_output": "Proof with: faq (array of {question, answer} objects), count (number).",
     "difficulty": "medium",
-    "tags": ["promotion", "documentation", "faq"],
+    "tags": [
+      "promotion",
+      "documentation",
+      "faq"
+    ],
     "category": "promotion",
     "reward_clips": 150,
-    "max_claims": 1000
+    "max_claims": 1000,
+    "min_tier": 0,
+    "required_task_id": null
   },
   {
     "version": "0.1.0",
@@ -359,9 +473,15 @@
     ],
     "expected_output": "Proof with: cast_content (string), cast_url (string), posted_at (ISO timestamp).",
     "difficulty": "easy",
-    "tags": ["promotion", "farcaster", "social-media"],
+    "tags": [
+      "promotion",
+      "farcaster",
+      "social-media"
+    ],
     "category": "promotion",
     "reward_clips": 100,
-    "max_claims": 10000
+    "max_claims": 10000,
+    "min_tier": 0,
+    "required_task_id": null
   }
 ]

@@ -1,10 +1,12 @@
 {
   "license": "ISC",
   "scripts": {
+    "bootstrap:machine": "node scripts/bootstrap-machine.cjs",
     "check:env": "node scripts/check-env.cjs",
     "install:all": "node scripts/install-all.cjs",
     "setup:local": "node scripts/setup-local.cjs",
     "clean": "node scripts/clean.cjs",
+    "build:cli": "npm run bootstrap:machine && cd cli && npm run build",
     "build": "anchor build && cd cli && npm run build",
     "test": "anchor test --skip-local-validator",
     "test:integration": "npx tsx scripts/integration-test.ts",
