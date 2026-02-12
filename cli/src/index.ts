@@ -32,7 +32,7 @@ import { NETWORK, PROGRAM_ID, RPC_URL, WALLET_TYPE } from "./config.js";
 import { provisionPrivyWallet } from "./privy.js";
 import type { AgentState, TaskInfo } from "./types.js";
 
-const TASK_IS_ACTIVE_OFFSET = 153;
+const TASK_IS_ACTIVE_OFFSET = 154;
 const NO_PREREQ_TASK_ID = 0xffffffff;
 
 // =============================================================================
@@ -135,7 +135,7 @@ const cli = new Command();
 cli
   .name("pc")
   .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
-  .version("0.1.1")
+  .version("0.1.2")
   .option("-n, --network <network>", "Network to use (devnet|localnet)")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")

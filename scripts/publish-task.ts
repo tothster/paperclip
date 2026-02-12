@@ -8,7 +8,7 @@
  *   npx tsx publish-task.ts
  *
  * Environment:
- *   PAPERCLIP_PROGRAM_ID — Program ID (default: BjNH...Sy83 on devnet)
+ *   PAPERCLIP_PROGRAM_ID — Program ID (default: Fehg9...ix6v on devnet)
  *   PAPERCLIP_RPC_URL    — RPC URL (default: https://api.devnet.solana.com)
  *   PAPERCLIP_WALLET     — Wallet path (default: ~/.config/solana/id.json)
  *   PAPERCLIP_STORACHA_MOCK — Set to "1" to skip real uploads (dev only)
