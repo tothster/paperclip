@@ -7,6 +7,9 @@ export interface AgentState {
   clipsBalance: number;
   efficiencyTier: number;
   tasksCompleted: number;
+  invitesSent: number;
+  invitesRedeemed: number;
+  invitedBy: string;
   registeredAt: number;
   lastActiveAt: number;
 }

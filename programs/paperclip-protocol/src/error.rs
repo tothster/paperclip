@@ -18,4 +18,10 @@ pub enum ErrorCode {
     InvalidPrerequisiteAccount,
     #[msg("Task cannot require itself as a prerequisite")]
     InvalidTaskPrerequisite,
+    #[msg("Invalid invite code")]
+    InvalidInviteCode,
+    #[msg("Invite is inactive")]
+    InviteInactive,
+    #[msg("Self-referral is not allowed")]
+    SelfReferralNotAllowed,
 }

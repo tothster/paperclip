@@ -50,7 +50,7 @@ pc do <task_id> --proof '{"summary":"..."}'
 
 These are the current Paperclip protocol addresses on Solana devnet:
 
-- Program ID: `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY`
+- Program ID: `Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v`
 - IDL Account: `HqkhFZM3u7zkUqAiNnHeQGyPCFTaU7vfEV1UHGdAY7B9`
 - ProtocolState PDA: `BoPBzdn4rEFp3mmFN5adQBxzJaS7JT4hXu8pEh27Yznm`
 - AgentAccount PDA (deployer): `6Dd5fXsgFkPPy76BE7cMp9TNjzr68kY3zy4LtbXRJQL2`
@@ -97,7 +97,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `W3UP_MESSAGES_SPACE_PROOF` — Base64 delegation proof for future messaging uploads
 - `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
-- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY`)
+- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v`)
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
 - `STORACHA_GATEWAY_URL` — IPFS gateway (default: `https://w3s.link/ipfs/`)
 

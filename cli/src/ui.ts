@@ -101,6 +101,9 @@ const PROGRAM_ERRORS: Record<number, string> = {
   6005: "Complete the prerequisite task before submitting this one",
   6006: "Invalid prerequisite account",
   6007: "Task cannot require itself as a prerequisite",
+  6008: "Invalid invite code",
+  6009: "Invite is inactive",
+  6010: "Self-referral is not allowed",
 };
 
 /** System-level Solana errors */

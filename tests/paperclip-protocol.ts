@@ -9,6 +9,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
+const INVITE_SEED = Buffer.from("invite");
 const NO_PREREQ_TASK_ID = 0xffffffff;
 
 function toFixedBytes(input: string, size: number): number[] {
@@ -56,6 +57,13 @@ function getClaimPda(
   )[0];
 }
 
+function getInvitePda(programId: PublicKey, inviter: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [INVITE_SEED, inviter.toBuffer()],
+    programId
+  )[0];
+}
+
 async function airdrop(
   connection: anchor.web3.Connection,
   pubkey: PublicKey,
@@ -78,17 +86,24 @@ describe("paperclip-protocol", () => {
   const task2Id = 2;
   const task3Id = 3;
   const task4Id = 4;
+  const task5Id = 5;
+  const task6Id = 6;
+  const task7Id = 7;
 
   const unauthorized = Keypair.generate();
   const agent2 = Keypair.generate();
   const agent3 = Keypair.generate();
   const agent4 = Keypair.generate();
+  const inviterAgent = Keypair.generate();
+  const invitedAgent = Keypair.generate();
 
   before(async () => {
     await airdrop(provider.connection, unauthorized.publicKey);
     await airdrop(provider.connection, agent2.publicKey);
     await airdrop(provider.connection, agent3.publicKey);
     await airdrop(provider.connection, agent4.publicKey);
+    await airdrop(provider.connection, inviterAgent.publicKey);
+    await airdrop(provider.connection, invitedAgent.publicKey);
   });
 
   it("Initializes protocol", async () => {
@@ -102,6 +117,8 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const protocol = await program.account.protocolState.fetch(protocolPda);
+    assert.equal(protocol.layoutVersion, 1);
+    assert.equal(protocol.reserved.length, 64);
     assert.equal(protocol.baseRewardUnit.toNumber(), 100);
     assert.equal(protocol.totalAgents, 0);
     assert.equal(protocol.totalTasks, 0);
@@ -120,9 +137,122 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const agent = await program.account.agentAccount.fetch(agentPda);
+    assert.equal(agent.layoutVersion, 1);
+    assert.equal(agent.reserved.length, 88);
     assert.equal(agent.clipsBalance.toNumber(), 100);
     assert.equal(agent.efficiencyTier, 0);
     assert.equal(agent.tasksCompleted, 0);
+    assert.equal(agent.invitesSent, 0);
+    assert.equal(agent.invitesRedeemed, 0);
+    assert.equal(
+      Buffer.from(agent.invitedBy.toBuffer()).toString("hex"),
+      Buffer.alloc(32).toString("hex")
+    );
+  });
+
+  it("Creates invite and registers with invite bonuses", async () => {
+    const protocolBefore = await program.account.protocolState.fetch(protocolPda);
+
+    const inviterAgentPda = getAgentPda(program.programId, inviterAgent.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: inviterAgentPda,
+        agent: inviterAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([inviterAgent])
+      .rpc();
+
+    const invitePda = getInvitePda(program.programId, inviterAgent.publicKey);
+    await program.methods
+      .createInvite()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: inviterAgentPda,
+        inviteRecord: invitePda,
+        agent: inviterAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([inviterAgent])
+      .rpc();
+
+    const invite = await program.account.inviteRecord.fetch(invitePda);
+    assert.equal(
+      Buffer.from(invite.inviteCode).toString("hex"),
+      inviterAgent.publicKey.toBuffer().toString("hex")
+    );
+    assert.equal(invite.inviterWallet.toBase58(), inviterAgent.publicKey.toBase58());
+    assert.equal(invite.invitesRedeemed, 0);
+    assert.equal(invite.isActive, true);
+
+    const invitedAgentPda = getAgentPda(program.programId, invitedAgent.publicKey);
+    await program.methods
+      .registerAgentWithInvite(Array.from(inviterAgent.publicKey.toBuffer()))
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: invitedAgentPda,
+        inviterAgent: inviterAgentPda,
+        inviteRecord: invitePda,
+        agent: invitedAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([invitedAgent])
+      .rpc();
+
+    const inviterState = await program.account.agentAccount.fetch(inviterAgentPda);
+    const invitedState = await program.account.agentAccount.fetch(invitedAgentPda);
+    const inviteAfter = await program.account.inviteRecord.fetch(invitePda);
+    const protocolAfter = await program.account.protocolState.fetch(protocolPda);
+
+    assert.equal(inviterState.clipsBalance.toNumber(), 150);
+    assert.equal(inviterState.invitesSent, 1);
+
+    assert.equal(invitedState.clipsBalance.toNumber(), 150);
+    assert.equal(invitedState.invitesRedeemed, 1);
+    assert.equal(invitedState.invitedBy.toBase58(), inviterAgent.publicKey.toBase58());
+
+    assert.equal(inviteAfter.invitesRedeemed, 1);
+    assert.equal(
+      protocolAfter.totalAgents,
+      protocolBefore.totalAgents + 2
+    );
+    assert.equal(
+      protocolAfter.totalClipsDistributed.toNumber(),
+      protocolBefore.totalClipsDistributed.toNumber() + 300
+    );
+  });
+
+  it("Rejects invalid invite code on register_agent_with_invite", async () => {
+    const invalidInvitee = Keypair.generate();
+    await airdrop(provider.connection, invalidInvitee.publicKey);
+
+    const invalidInviteePda = getAgentPda(program.programId, invalidInvitee.publicKey);
+    const inviterAgentPda = getAgentPda(program.programId, inviterAgent.publicKey);
+    const invitePda = getInvitePda(program.programId, inviterAgent.publicKey);
+
+    const badCode = Buffer.alloc(32);
+    badCode.set(Buffer.from("not-a-valid-invite-code"));
+
+    try {
+      await program.methods
+        .registerAgentWithInvite(Array.from(badCode))
+        .accounts({
+          protocol: protocolPda,
+          agentAccount: invalidInviteePda,
+          inviterAgent: inviterAgentPda,
+          inviteRecord: invitePda,
+          agent: invalidInvitee.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([invalidInvitee])
+        .rpc();
+      assert.fail("Expected invalid invite code to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Invalid invite code");
+    }
   });
 
   it("Creates task (authority only)", async () => {
@@ -146,6 +276,8 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const task = await program.account.taskRecord.fetch(taskPda);
+    assert.equal(task.layoutVersion, 1);
+    assert.equal(task.reserved.length, 128);
     assert.equal(task.taskId, task1Id);
     assert.equal(task.rewardClips.toNumber(), 50);
     assert.equal(task.maxClaims, 2);
@@ -210,6 +342,83 @@ describe("paperclip-protocol", () => {
     }
   });
 
+  it("Rejects non-authority deactivate_task", async () => {
+    const taskPda = getTaskPda(program.programId, task5Id);
+    await program.methods
+      .createTask(
+        task5Id,
+        toFixedBytes("Deactivatable", 32),
+        toFixedBytes("bafy-deactivatable", 64),
+        new anchor.BN(20),
+        3,
+        0,
+        NO_PREREQ_TASK_ID
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    try {
+      await program.methods
+        .deactivateTask(task5Id)
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          authority: unauthorized.publicKey,
+        })
+        .signers([unauthorized])
+        .rpc();
+      assert.fail("Expected unauthorized deactivate_task to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Unauthorized");
+    }
+  });
+
+  it("Deactivates task and blocks submit_proof", async () => {
+    const taskPda = getTaskPda(program.programId, task5Id);
+    await program.methods
+      .deactivateTask(task5Id)
+      .accounts({
+        protocol: protocolPda,
+        task: taskPda,
+        authority: provider.wallet.publicKey,
+      })
+      .rpc();
+
+    const task = await program.account.taskRecord.fetch(taskPda);
+    assert.equal(task.isActive, false);
+
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const claimPda = getClaimPda(
+      program.programId,
+      task5Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task5Id, toFixedBytes("bafy-proof-inactive", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agentPda,
+          claim: claimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      assert.fail("Expected submit on inactive task to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Task is not active");
+    }
+  });
+
   it("Submits proof and awards clips", async () => {
     const taskPda = getTaskPda(program.programId, task1Id);
     const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
@@ -234,6 +443,8 @@ describe("paperclip-protocol", () => {
     const agent = await program.account.agentAccount.fetch(agentPda);
     const task = await program.account.taskRecord.fetch(taskPda);
     const claim = await program.account.claimRecord.fetch(claimPda);
+    assert.equal(claim.layoutVersion, 1);
+    assert.equal(claim.reserved.length, 64);
 
     assert.equal(agent.clipsBalance.toNumber(), 150);
     assert.equal(agent.tasksCompleted, 1);
@@ -393,6 +604,92 @@ describe("paperclip-protocol", () => {
 
     const providerClaim = await program.account.claimRecord.fetch(providerClaimPda);
     assert.equal(providerClaim.taskId, task4Id);
+  });
+
+  it("Persists required_task_id and enforces agent-specific prerequisite claims", async () => {
+    const prereqTaskPda = getTaskPda(program.programId, task6Id);
+    await program.methods
+      .createTask(
+        task6Id,
+        toFixedBytes("Agent-specific prereq base", 32),
+        toFixedBytes("bafy-agent-specific-prereq-base", 64),
+        new anchor.BN(15),
+        5,
+        0,
+        NO_PREREQ_TASK_ID
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: prereqTaskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const dependentTaskPda = getTaskPda(program.programId, task7Id);
+    await program.methods
+      .createTask(
+        task7Id,
+        toFixedBytes("Agent-specific prereq child", 32),
+        toFixedBytes("bafy-agent-specific-prereq-child", 64),
+        new anchor.BN(15),
+        5,
+        0,
+        task6Id
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: dependentTaskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const dependentTask = await program.account.taskRecord.fetch(dependentTaskPda);
+    assert.equal(dependentTask.requiredTaskId, task6Id);
+
+    const agent4Pda = getAgentPda(program.programId, agent4.publicKey);
+    const agent4PrereqClaimPda = getClaimPda(program.programId, task6Id, agent4.publicKey);
+    await program.methods
+      .submitProof(task6Id, toFixedBytes("bafy-agent4-prereq-proof", 64))
+      .accounts({
+        protocol: protocolPda,
+        task: prereqTaskPda,
+        agentAccount: agent4Pda,
+        claim: agent4PrereqClaimPda,
+        agent: agent4.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent4])
+      .rpc();
+
+    const providerAgentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const providerDependentClaimPda = getClaimPda(
+      program.programId,
+      task7Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task7Id, toFixedBytes("bafy-provider-wrong-prereq", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: dependentTaskPda,
+          agentAccount: providerAgentPda,
+          claim: providerDependentClaimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .remainingAccounts([
+          { pubkey: agent4PrereqClaimPda, isWritable: false, isSigner: false },
+        ])
+        .rpc();
+      assert.fail("Expected agent-specific prerequisite validation to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Invalid prerequisite account provided");
+    }
   });
 
   it("Rejects claims when max_claims reached", async () => {

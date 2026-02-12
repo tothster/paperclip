@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY");
+declare_id!("Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v");
 
 #[program]
 pub mod paperclip_protocol {
@@ -21,6 +21,17 @@ pub mod paperclip_protocol {
 
     pub fn register_agent(ctx: Context<RegisterAgent>) -> Result<()> {
         register_agent::handler(ctx)
+    }
+
+    pub fn register_agent_with_invite(
+        ctx: Context<RegisterAgentWithInvite>,
+        invite_code: [u8; 32],
+    ) -> Result<()> {
+        register_agent_with_invite::handler(ctx, invite_code)
+    }
+
+    pub fn create_invite(ctx: Context<CreateInvite>) -> Result<()> {
+        create_invite::handler(ctx)
     }
 
     pub fn create_task(
@@ -51,5 +62,9 @@ pub mod paperclip_protocol {
         proof_cid: [u8; 64],
     ) -> Result<()> {
         submit_proof::handler(ctx, task_id, proof_cid)
+    }
+
+    pub fn deactivate_task(ctx: Context<DeactivateTask>, task_id: u32) -> Result<()> {
+        deactivate_task::handler(ctx, task_id)
     }
 }

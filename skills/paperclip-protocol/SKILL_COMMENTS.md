@@ -18,7 +18,8 @@ Do not teach environment setup in this file.
 
 Keep:
 - install command
-- start commands (`pc init`, `pc status`, `pc tasks`)
+- start commands (`pc init`, `pc invite`, `pc status`, `pc tasks`)
+- invite onboarding command (`pc init --invite <code>`)
 - `pc do` usage with proof example
 - clear task rules
 - common outcomes/errors

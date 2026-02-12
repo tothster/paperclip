@@ -18,7 +18,7 @@ In the Privy dashboard, create a policy to restrict agent wallets:
    - **Name**: `Paperclip agents only`
    - **Method**: `solana_signAndSendTransaction`
    - **Conditions**:
-     - `program_id` IN `["29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"]`
+     - `program_id` IN `["Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v"]`
    - **Action**: `ALLOW`
 3. Set a **default deny** for all other methods
 
