@@ -78,6 +78,7 @@ describe("paperclip-protocol", () => {
   const task2Id = 2;
   const task3Id = 3;
   const task4Id = 4;
+  const task5Id = 5;
 
   const unauthorized = Keypair.generate();
   const agent2 = Keypair.generate();
@@ -213,6 +214,83 @@ describe("paperclip-protocol", () => {
     } catch (err) {
       const message = (err as Error).toString();
       assert.include(message, "Task cannot require itself as a prerequisite");
+    }
+  });
+
+  it("Rejects non-authority deactivate_task", async () => {
+    const taskPda = getTaskPda(program.programId, task5Id);
+    await program.methods
+      .createTask(
+        task5Id,
+        toFixedBytes("Deactivatable", 32),
+        toFixedBytes("bafy-deactivatable", 64),
+        new anchor.BN(20),
+        3,
+        0,
+        NO_PREREQ_TASK_ID
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: taskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    try {
+      await program.methods
+        .deactivateTask(task5Id)
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          authority: unauthorized.publicKey,
+        })
+        .signers([unauthorized])
+        .rpc();
+      assert.fail("Expected unauthorized deactivate_task to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Unauthorized");
+    }
+  });
+
+  it("Deactivates task and blocks submit_proof", async () => {
+    const taskPda = getTaskPda(program.programId, task5Id);
+    await program.methods
+      .deactivateTask(task5Id)
+      .accounts({
+        protocol: protocolPda,
+        task: taskPda,
+        authority: provider.wallet.publicKey,
+      })
+      .rpc();
+
+    const task = await program.account.taskRecord.fetch(taskPda);
+    assert.equal(task.isActive, false);
+
+    const agentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const claimPda = getClaimPda(
+      program.programId,
+      task5Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task5Id, toFixedBytes("bafy-proof-inactive", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: taskPda,
+          agentAccount: agentPda,
+          claim: claimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      assert.fail("Expected submit on inactive task to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Task is not active");
     }
   });
 

@@ -64,67 +64,97 @@ interface TaskDefinition {
     acceptance_criteria: string[];
     category?: string;
     difficulty?: string;
+    input?: Record<string, unknown>;
   };
 }
 
 const TASKS: TaskDefinition[] = [
   {
-    taskId: 2001,
-    title: "Summarize Whitepaper",
+    taskId: 2101,
+    title: "Summarize Whitepaper V2",
     rewardClips: 100,
     maxClaims: 10,
     content: {
-      description: "Read and summarize a crypto whitepaper in 3 sentences.",
+      description:
+        "Read the provided Bitcoin whitepaper link and summarize it in 3 sentences.",
       instructions:
-        "Download the linked whitepaper PDF. Produce a JSON proof containing: " +
-        "title (string), summary (string, max 280 chars), key_innovation (string).",
+        "Use the `input.whitepaper_url` below. Produce a JSON proof containing: " +
+        "title (string), summary (string, max 280 chars), key_innovation (string), " +
+        "source_url (must match input.whitepaper_url).",
       acceptance_criteria: [
         "Summary is factually accurate",
         "Summary is under 280 characters",
         "key_innovation identifies the core novelty",
+        "source_url exactly matches input.whitepaper_url",
       ],
       category: "research",
       difficulty: "easy",
+      input: {
+        whitepaper_url: "https://bitcoin.org/bitcoin.pdf",
+      },
     },
   },
   {
-    taskId: 2002,
-    title: "Label Image Dataset",
+    taskId: 2102,
+    title: "Label Image Dataset V2",
     rewardClips: 200,
     maxClaims: 5,
     content: {
-      description: "Label 50 images with bounding boxes for object detection.",
+      description:
+        "Label 10 provided image URLs with bounding boxes for object detection.",
       instructions:
-        "Download the image archive from the provided URL. " +
-        "For each image, produce bounding-box annotations in COCO format. " +
-        "Submit the annotation JSON as your proof.",
+        "Use `input.image_urls` below (10 URLs). " +
+        "Produce annotations in COCO-style JSON with image_id, category, and bbox=[x,y,w,h]. " +
+        "Submit one JSON containing all annotations and include source_urls_used exactly as provided.",
       acceptance_criteria: [
-        "All 50 images annotated",
-        "COCO format JSON with valid bounding boxes",
-        "At least 90% labeling accuracy",
+        "All 10 input.image_urls are annotated",
+        "COCO-style JSON with valid bbox fields",
+        "source_urls_used exactly matches input.image_urls order",
       ],
       category: "data-labeling",
       difficulty: "medium",
+      input: {
+        image_urls: [
+          "https://picsum.photos/id/10/800/600",
+          "https://picsum.photos/id/20/800/600",
+          "https://picsum.photos/id/30/800/600",
+          "https://picsum.photos/id/40/800/600",
+          "https://picsum.photos/id/50/800/600",
+          "https://picsum.photos/id/60/800/600",
+          "https://picsum.photos/id/70/800/600",
+          "https://picsum.photos/id/80/800/600",
+          "https://picsum.photos/id/90/800/600",
+          "https://picsum.photos/id/100/800/600",
+        ],
+      },
     },
   },
   {
-    taskId: 2003,
-    title: "Translate EN to PT-BR",
+    taskId: 2103,
+    title: "Translate EN to PT-BR V2",
     rewardClips: 150,
     maxClaims: 3,
     content: {
-      description: "Translate a product description from English to Brazilian Portuguese.",
+      description:
+        "Translate the provided marketing copy from English to Brazilian Portuguese.",
       instructions:
-        "Translate the provided marketing copy into natural-sounding PT-BR. " +
-        "Maintain tone and branding. Submit the translation as a JSON proof " +
-        "with fields: original, translation, translator_notes.",
+        "Use `input.marketing_copy_en` exactly as source text. " +
+        "Translate into natural PT-BR while preserving brand voice. " +
+        "Submit JSON proof with fields: original, translation, translator_notes.",
       acceptance_criteria: [
         "Translation is fluent PT-BR (not Portugal Portuguese)",
         "Brand names and technical terms preserved",
         "No machine-translation artifacts",
+        "original exactly matches input.marketing_copy_en",
       ],
       category: "translation",
       difficulty: "medium",
+      input: {
+        marketing_copy_en:
+          "Paperclip helps AI agents complete real tasks and earn Clips. " +
+          "Install in minutes, browse active missions, and submit proof directly on Solana. " +
+          "Level up your agent profile as you complete work that matters.",
+      },
     },
   },
 ];
