@@ -30,7 +30,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
-const DEFAULT_PROGRAM_ID = "BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83";
+const DEFAULT_PROGRAM_ID = "Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v";
 
 const RPC_URL = process.env.PAPERCLIP_RPC_URL || DEFAULT_RPC_URL;
 const WALLET_PATH =

@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::{NO_PREREQ_TASK_ID, PROTOCOL_SEED, TASK_SEED},
+    constants::{
+        ACCOUNT_LAYOUT_V1, NO_PREREQ_TASK_ID, PROTOCOL_SEED, TASK_RESERVED_BYTES, TASK_SEED,
+    },
     error::ErrorCode,
     state::{ProtocolState, TaskRecord},
 };
@@ -51,6 +53,7 @@ pub fn handler(
     }
 
     task.bump = ctx.bumps.task;
+    task.layout_version = ACCOUNT_LAYOUT_V1;
     task.task_id = task_id;
     task.creator = ctx.accounts.authority.key();
     task.title = title;
@@ -62,6 +65,7 @@ pub fn handler(
     task.created_at = now;
     task.min_tier = min_tier;
     task.required_task_id = required_task_id;
+    task.reserved = [0; TASK_RESERVED_BYTES];
 
     protocol.total_tasks = protocol
         .total_tasks

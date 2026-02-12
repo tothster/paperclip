@@ -1,7 +1,10 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::{AGENT_SEED, CLAIM_SEED, NO_PREREQ_TASK_ID, PROTOCOL_SEED, TASK_SEED},
+    constants::{
+        ACCOUNT_LAYOUT_V1, AGENT_SEED, CLAIM_RESERVED_BYTES, CLAIM_SEED, NO_PREREQ_TASK_ID,
+        PROTOCOL_SEED, TASK_SEED,
+    },
     error::ErrorCode,
     state::{AgentAccount, ClaimRecord, ProtocolState, TaskRecord},
 };
@@ -131,11 +134,13 @@ pub fn handler(ctx: Context<SubmitProof>, task_id: u32, proof_cid: [u8; 64]) -> 
 
     let claim = &mut ctx.accounts.claim;
     claim.bump = ctx.bumps.claim;
+    claim.layout_version = ACCOUNT_LAYOUT_V1;
     claim.task_id = task_id;
     claim.agent = ctx.accounts.agent.key();
     claim.proof_cid = proof_cid;
     claim.clips_awarded = task.reward_clips;
     claim.completed_at = now;
+    claim.reserved = [0; CLAIM_RESERVED_BYTES];
 
     Ok(())
 }

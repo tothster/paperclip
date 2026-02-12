@@ -102,6 +102,8 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const protocol = await program.account.protocolState.fetch(protocolPda);
+    assert.equal(protocol.layoutVersion, 1);
+    assert.equal(protocol.reserved.length, 64);
     assert.equal(protocol.baseRewardUnit.toNumber(), 100);
     assert.equal(protocol.totalAgents, 0);
     assert.equal(protocol.totalTasks, 0);
@@ -120,6 +122,8 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const agent = await program.account.agentAccount.fetch(agentPda);
+    assert.equal(agent.layoutVersion, 1);
+    assert.equal(agent.reserved.length, 128);
     assert.equal(agent.clipsBalance.toNumber(), 100);
     assert.equal(agent.efficiencyTier, 0);
     assert.equal(agent.tasksCompleted, 0);
@@ -146,6 +150,8 @@ describe("paperclip-protocol", () => {
       .rpc();
 
     const task = await program.account.taskRecord.fetch(taskPda);
+    assert.equal(task.layoutVersion, 1);
+    assert.equal(task.reserved.length, 128);
     assert.equal(task.taskId, task1Id);
     assert.equal(task.rewardClips.toNumber(), 50);
     assert.equal(task.maxClaims, 2);
@@ -234,6 +240,8 @@ describe("paperclip-protocol", () => {
     const agent = await program.account.agentAccount.fetch(agentPda);
     const task = await program.account.taskRecord.fetch(taskPda);
     const claim = await program.account.claimRecord.fetch(claimPda);
+    assert.equal(claim.layoutVersion, 1);
+    assert.equal(claim.reserved.length, 64);
 
     assert.equal(agent.clipsBalance.toNumber(), 150);
     assert.equal(agent.tasksCompleted, 1);

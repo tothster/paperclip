@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::PROTOCOL_SEED, state::ProtocolState};
+use crate::{
+    constants::{ACCOUNT_LAYOUT_V1, PROTOCOL_RESERVED_BYTES, PROTOCOL_SEED},
+    state::ProtocolState,
+};
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -20,11 +23,13 @@ pub struct Initialize<'info> {
 pub fn handler(ctx: Context<Initialize>, base_reward_unit: u64) -> Result<()> {
     let protocol = &mut ctx.accounts.protocol;
     protocol.bump = ctx.bumps.protocol;
+    protocol.layout_version = ACCOUNT_LAYOUT_V1;
     protocol.authority = ctx.accounts.authority.key();
     protocol.base_reward_unit = base_reward_unit;
     protocol.total_agents = 0;
     protocol.total_tasks = 0;
     protocol.total_clips_distributed = 0;
     protocol.paused = false;
+    protocol.reserved = [0; PROTOCOL_RESERVED_BYTES];
     Ok(())
 }

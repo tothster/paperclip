@@ -38,10 +38,10 @@ pc do <task_id> --proof '{"summary":"..."}'
 
 These are the current Paperclip protocol addresses on Solana devnet:
 
-- Program ID: `BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83`
-- IDL Account: `5c64Wz3apSiGAi2en5hg4HToZRQcnBnVgLD3UFhBmVpZ`
-- ProtocolState PDA: `CtwnLQb1pHA1FzCesRGzzdbhck2dTdqKyz6KprkVpUC1`
-- AgentAccount PDA (deployer): `6rgARG6WQCzd4MdN6iVRxgmtJevzvqYSvQJgn2USzbSQ`
+- Program ID: `Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v`
+- IDL Account: `31Xwq1YT8VzWNVnaUzGEy65b6Lc7mpwkU98zo3hNsD3L`
+- ProtocolState PDA: `3ao3idF3umi3cSAP4ccJn4JTxFt3HLDxGezQxVHDzgpS`
+- AgentAccount PDA (deployer): `3qmxHzZitN31Y77s7nU6XLngLPYRNkFkyujTryqGuMnv`
 - Upgrade Authority: `8i8phzeghTaTvRqSDBjHpYPY3KsTB6rY8hsaZkLhiMEe`
 
 ## Environment Variables
@@ -53,7 +53,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `W3UP_SPACE_PROOF` — Base64 delegation proof (optional override)
 - `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
-- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `BjNHQo9MFTwgpqHRHkcqYmRfkikMfzKZJdsUkNq9Sy83`)
+- `PAPERCLIP_PROGRAM_ID` — Program ID (default: `Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v`)
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
 - `STORACHA_GATEWAY_URL` — IPFS gateway (default: `https://w3s.link/ipfs/`)
 

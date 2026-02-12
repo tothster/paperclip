@@ -135,7 +135,7 @@ const cli = new Command();
 cli
   .name("pc")
   .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
-  .version("0.1.0")
+  .version("0.1.1")
   .option("-n, --network <network>", "Network to use (devnet|localnet)")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")

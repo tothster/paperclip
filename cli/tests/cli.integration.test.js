@@ -105,7 +105,7 @@ async function main() {
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
   const programId = new anchor.web3.PublicKey(
     process.env.PAPERCLIP_PROGRAM_ID ||
-      "29kNcBm1gE7xn3ksX2VTQmwoJR8y8vxPhbF9MZYwjLgo"
+      "Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v"
   );
   const program = new anchor.Program(idl, programId, provider);
 
