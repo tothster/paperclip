@@ -2,11 +2,14 @@
  * Standalone devnet initialization script.
  * Publishes IDL (init/upgrade) then calls `initialize` to create ProtocolState PDA
  * with base_reward_unit=100.
+ * Optionally seeds a starter task subset via scripts/publish-task.ts.
  * Does NOT require airdrop — uses the existing funded wallet.
  *
  * Usage:  ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
  *         ANCHOR_WALLET=~/.config/solana/id.json \
  *         npx tsx scripts/init-devnet.ts
+ *         npx tsx scripts/init-devnet.ts --seed-tasks --task-limit 5
+ *         npx tsx scripts/init-devnet.ts --seed-tasks --task-ids 1,2,3,10
  */
 
 import fs from "fs";
@@ -26,6 +29,58 @@ const DEFAULT_WALLET_PATH = path.join(os.homedir(), ".config", "solana", "id.jso
 
 const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
+
+interface SeedOptions {
+  enabled: boolean;
+  taskLimit: number | null;
+  taskIds: string | null;
+}
+
+function readFlagValue(argv: string[], flag: string): string | undefined {
+  const idx = argv.indexOf(flag);
+  if (idx === -1) {
+    return undefined;
+  }
+  const value = argv[idx + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return value;
+}
+
+function parsePositiveInt(value: string, field: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`Invalid ${field} value "${value}". Expected a positive integer.`);
+  }
+  return parsed;
+}
+
+function parseSeedOptions(argv: string[]): SeedOptions {
+  const enabled =
+    argv.includes("--seed-tasks") || process.env.PAPERCLIP_INIT_SEED_TASKS === "1";
+  const taskIds =
+    readFlagValue(argv, "--task-ids") || process.env.PAPERCLIP_INIT_TASK_IDS || "";
+  const taskLimitRaw =
+    readFlagValue(argv, "--task-limit") || process.env.PAPERCLIP_INIT_TASK_LIMIT || "";
+
+  let taskLimit: number | null = null;
+  if (taskLimitRaw) {
+    if (taskLimitRaw.toLowerCase() === "all") {
+      taskLimit = null;
+    } else {
+      taskLimit = parsePositiveInt(taskLimitRaw, "--task-limit");
+    }
+  } else if (enabled && !taskIds.trim()) {
+    taskLimit = 5;
+  }
+
+  return {
+    enabled,
+    taskLimit,
+    taskIds: taskIds.trim() || null,
+  };
+}
 
 function runAnchorCommand(args: string[]): void {
   const result = spawnSync("anchor", args, {
@@ -80,7 +135,53 @@ function publishIdl(programId: string, cluster: string, walletPath: string): voi
   console.log(`✓ IDL ${action === "init" ? "initialized" : "upgraded"} from ${IDL_PATH}`);
 }
 
+function seedTasks(
+  options: SeedOptions,
+  programId: string,
+  cluster: string,
+  walletPath: string
+): void {
+  if (!options.enabled) {
+    console.log(
+      "\n[4/4] Skipping task seeding (use --seed-tasks or PAPERCLIP_INIT_SEED_TASKS=1)."
+    );
+    return;
+  }
+
+  const args = ["tsx", "scripts/publish-task.ts"];
+  if (options.taskIds) {
+    args.push("--task-ids", options.taskIds);
+  } else if (options.taskLimit !== null) {
+    args.push("--limit", String(options.taskLimit));
+  }
+
+  console.log("\n[4/4] Seeding tasks...");
+  if (options.taskIds) {
+    console.log("  Selection: task IDs", options.taskIds);
+  } else if (options.taskLimit !== null) {
+    console.log("  Selection: first", options.taskLimit, "task(s) + prerequisites");
+  } else {
+    console.log("  Selection: all catalog tasks");
+  }
+
+  const result = spawnSync("npx", args, {
+    cwd: ROOT_DIR,
+    stdio: "inherit",
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PAPERCLIP_PROGRAM_ID: programId,
+      PAPERCLIP_RPC_URL: cluster,
+      PAPERCLIP_WALLET: walletPath,
+    },
+  });
+  if (result.status !== 0) {
+    throw new Error(`Task seeding failed with exit code ${result.status ?? 1}`);
+  }
+}
+
 async function main() {
+  const seedOptions = parseSeedOptions(process.argv.slice(2));
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
@@ -156,6 +257,8 @@ async function main() {
   console.log("  AgentAccount PDA:", agentPda.toBase58());
   console.log("  clipsBalance:", agent.clipsBalance.toString());
   console.log("  tasksCompleted:", agent.tasksCompleted);
+
+  seedTasks(seedOptions, program.programId.toBase58(), cluster, walletPath);
 
   console.log("\n✅ Devnet initialization complete!");
 }

@@ -94,10 +94,14 @@ Last updated: 2026-02-12
 - [x] Write HEARTBEAT installation and usage guide
   - Evidence: `HEARTBEAT_SETUP.md`
 - [ ] Storacha multi-space migration:
-  - [ ] Create `paperclip-tasks` space (task definitions, authority-only writes)
-  - [ ] Create `paperclip-data` space (agent proofs, identity cards, general agent data)
-  - [ ] Create `paperclip-messages` space (encrypted agent-to-agent messages, later)
+  - [x] Create `paperclip-tasks` space (task definitions, authority-only writes)
+    - Evidence: `npx tsx scripts/storacha-clean.ts --scope tasks` connects to `did:key:z6MkeZYxzGf3Dz13eEWqPaiZy5czR3UGJT6VJ2xb9ov3fm92`
+  - [x] Create `paperclip-data` space (agent proofs, identity cards, general agent data)
+    - Evidence: `npx tsx scripts/storacha-clean.ts --scope data` connects to `did:key:z6MkoCzdNrDhBfQsaahy7QMUYmvsCrcE3DgNUuLppCp6JvtC`
+  - [x] Create `paperclip-messages` space (encrypted agent-to-agent messages, later)
+    - Evidence: `npx tsx scripts/storacha-clean.ts --scope messages` connects to `did:key:z6MkgcY3RmfgLbZj51XsJoEhsTavQDQiPjS24rWQQA8iKKy2`
   - [ ] Generate separate delegation proofs per space (scoped write access)
+    - Evidence (partial): distinct `W3UP_{DATA,TASKS,MESSAGES}_SPACE_{DID,PROOF}` are configured; however scoped task-proof publish attempt failed with `failed space/blob/add invocation` on 2026-02-12, so scoped write delegation still needs finalization
   - [x] Update CLI to use `paperclip-data` space for proof uploads
     - Evidence: scoped upload flow in `cli/src/storacha.ts` + `cli/src/index.ts`
   - [x] Update `scripts/publish-task.ts` to use `paperclip-tasks` space
@@ -108,12 +112,15 @@ Last updated: 2026-02-12
   - [x] Technical tasks: build with SDK, deploy contracts, integrate CLI
   - [x] Community tasks: recruit agents, review proofs, create tutorials
   - [x] Lore tasks: protocol worldbuilding, narrative content
-  - Evidence: task catalog currently contains 85 tasks across all categories in `tasks/catalog.json` + `tasks/*`
-- [ ] Migrate `/tasks` catalog JSON to gating schema (`min_tier`, `required_task_id`) and republish via `scripts/publish-task.ts`
-  - Evidence (partial): schema migrated in `tasks/*` via `scripts/migrate-task-schema.ts`; `scripts/publish-task.ts --dry-run` validates 85 tasks; live republish still pending
-- [ ] Seed tasks on-chain via `scripts/publish-task.ts`
+  - Evidence: task catalog currently contains 85 tasks across all categories in `tasks/catalog.json` + `tasks/*`; all 85 are now seeded on devnet
+- [x] Migrate `/tasks` catalog JSON to gating schema (`min_tier`, `required_task_id`) and republish via `scripts/publish-task.ts`
+  - Evidence: schema migration in `tasks/*` via `scripts/migrate-task-schema.ts`; live publish completed and follow-up `npm run publish:tasks -- --dry-run` reports `Skipped: 85`
+- [x] Seed tasks on-chain via `scripts/publish-task.ts`
+  - Evidence: devnet protocol query for `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY` reports `totalTasks=85` (2026-02-12)
 - [ ] End-to-end manual tests (localnet + devnet)
-- [ ] Devnet deploy + config (program ID + RPC)
+  - Evidence (partial): devnet CLI checks pass (`pc tasks --json | jq 'length'` => `81`; `pc status --json` returns agent/availability), but `npm run test:integration` fails on localnet because validator is not running (`solana cluster-version --url http://127.0.0.1:8899` unreachable)
+- [x] Devnet deploy + config (program ID + RPC)
+  - Evidence: redeploy ID is set in `Anchor.toml` + `cli/src/config.ts` + `.env`; manual devnet check with explicit env (`PAPERCLIP_PROGRAM_ID=GDcr... PAPERCLIP_RPC_URL=https://api.devnet.solana.com node cli/dist/index.js --network devnet status --json`) succeeds
 - [x] CLI packaging for npm (`pc` binary install)
   - Evidence: `cli/package.json` updated for publishable package (`@paperclip/pc`, `prepack`, public access)
 - [ ] CLI error handling / UX hardening

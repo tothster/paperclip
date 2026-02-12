@@ -146,11 +146,11 @@ async function main() {
     );
   }
 
-  const { W3UP_SPACE_DID, W3UP_SPACE_PROOF } = require(CONFIG);
+  const { W3UP_DATA_SPACE_DID, W3UP_DATA_SPACE_PROOF } = require(CONFIG);
   if (!useMock) {
-    if (!W3UP_SPACE_DID || !W3UP_SPACE_PROOF) {
+    if (!W3UP_DATA_SPACE_DID || !W3UP_DATA_SPACE_PROOF) {
       throw new Error(
-        "Storacha not configured. Set W3UP_SPACE_DID and W3UP_SPACE_PROOF, or run with PAPERCLIP_TEST_USE_MOCK_STORACHA=1."
+        "Storacha not configured. Set W3UP_DATA_SPACE_DID and W3UP_DATA_SPACE_PROOF, or run with PAPERCLIP_TEST_USE_MOCK_STORACHA=1."
       );
     }
   }

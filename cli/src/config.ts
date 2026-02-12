@@ -3,7 +3,11 @@ import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { PublicKey } from "@solana/web3.js";
-import { getNetwork, type PaperclipNetwork } from "./settings.js";
+import {
+  getConfiguredNetwork,
+  getNetwork,
+  type PaperclipNetwork,
+} from "./settings.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,8 +27,6 @@ interface BakedConfig {
   W3UP_TASKS_SPACE_PROOF?: string;
   W3UP_MESSAGES_SPACE_DID?: string;
   W3UP_MESSAGES_SPACE_PROOF?: string;
-  W3UP_SPACE_DID?: string;
-  W3UP_SPACE_PROOF?: string;
   PRIVY_APP_ID?: string;
   PRIVY_APP_SECRET?: string;
 }
@@ -87,6 +89,7 @@ const bakedNetwork = parseNetwork(baked.PAPERCLIP_NETWORK);
 export const NETWORK: PaperclipNetwork =
   networkFromArgv(process.argv) ||
   parseNetwork(process.env.PAPERCLIP_NETWORK) ||
+  getConfiguredNetwork() ||
   bakedNetwork ||
   getNetwork();
 
@@ -113,14 +116,8 @@ export const STORACHA_GATEWAY_URL =
   clean(baked.STORACHA_GATEWAY_URL) ||
   "https://w3s.link/ipfs/";
 
-export const W3UP_SPACE_DID =
-  clean(process.env.W3UP_SPACE_DID) || clean(baked.W3UP_SPACE_DID) || "";
-
 export const STORACHA_AGENT_KEY =
   clean(process.env.STORACHA_AGENT_KEY) || clean(baked.STORACHA_AGENT_KEY) || "";
-
-export const W3UP_SPACE_PROOF =
-  clean(process.env.W3UP_SPACE_PROOF) || clean(baked.W3UP_SPACE_PROOF) || "";
 
 export const W3UP_DATA_SPACE_DID =
   clean(process.env.W3UP_DATA_SPACE_DID) || clean(baked.W3UP_DATA_SPACE_DID) || "";
@@ -154,9 +151,11 @@ export const PRIVY_APP_ID =
 export const PRIVY_APP_SECRET =
   clean(process.env.PRIVY_APP_SECRET) || clean(baked.PRIVY_APP_SECRET) || "";
 
-const configuredWalletType =
-  parseWalletType(process.env.PAPERCLIP_WALLET_TYPE) ||
-  parseWalletType(baked.PAPERCLIP_WALLET_TYPE);
+const envWalletType = parseWalletType(process.env.PAPERCLIP_WALLET_TYPE);
+const bakedWalletType = parseWalletType(baked.PAPERCLIP_WALLET_TYPE);
+const hasPrivyCreds = Boolean(PRIVY_APP_ID && PRIVY_APP_SECRET);
 
 export const WALLET_TYPE: WalletType =
-  configuredWalletType || (PRIVY_APP_ID && PRIVY_APP_SECRET ? "privy" : "local");
+  envWalletType ||
+  (bakedWalletType === "privy" && !hasPrivyCreds ? undefined : bakedWalletType) ||
+  (hasPrivyCreds ? "privy" : "local");

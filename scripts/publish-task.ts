@@ -8,6 +8,9 @@
  *   npx tsx publish-task.ts
  *   npx tsx publish-task.ts --dry-run
  *   npx tsx publish-task.ts --examples
+ *   npx tsx publish-task.ts --limit 5
+ *   npx tsx publish-task.ts --task-ids 1,2,3,10
+ *   npx tsx publish-task.ts --probe-upload
  *
  * Environment:
  *   PAPERCLIP_PROGRAM_ID      — Program ID (default: GDcr...kFAY on devnet)
@@ -53,6 +56,9 @@ const NO_PREREQ_TASK_ID = 0xffffffff;
 interface PublishOptions {
   dryRun: boolean;
   examples: boolean;
+  limit: number | null;
+  taskIds: number[];
+  probeUpload: boolean;
 }
 
 interface RawTaskDefinition {
@@ -104,10 +110,49 @@ interface NormalizedTaskDefinition {
 // =============================================================================
 
 function parseOptions(argv: string[]): PublishOptions {
+  const limitRaw = readFlagValue(argv, "--limit");
+  const taskIdsRaw = readFlagValue(argv, "--task-ids");
+
   return {
     dryRun: argv.includes("--dry-run"),
     examples: argv.includes("--examples"),
+    limit: limitRaw ? parsePositiveInt(limitRaw, "--limit") : null,
+    taskIds: taskIdsRaw ? parseTaskIds(taskIdsRaw) : [],
+    probeUpload: argv.includes("--probe-upload"),
   };
+}
+
+function readFlagValue(argv: string[], flag: string): string | undefined {
+  const idx = argv.indexOf(flag);
+  if (idx === -1) {
+    return undefined;
+  }
+  const value = argv[idx + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return value;
+}
+
+function parsePositiveInt(value: string, field: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`Invalid ${field} value "${value}". Expected a positive integer.`);
+  }
+  return parsed;
+}
+
+function parseTaskIds(value: string): number[] {
+  const values = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (values.length === 0) {
+    throw new Error('Invalid --task-ids value. Example: --task-ids "1,2,3"');
+  }
+
+  const ids = values.map((item) => parsePositiveInt(item, "--task-ids"));
+  return Array.from(new Set(ids)).sort((a, b) => a - b);
 }
 
 function buildExampleTasks(): NormalizedTaskDefinition[] {
@@ -490,6 +535,62 @@ function loadTaskDefinitions(catalogPath: string): NormalizedTaskDefinition[] {
   return tasks.sort((a, b) => a.taskId - b.taskId);
 }
 
+function expandPrerequisites(
+  selectedIds: Set<number>,
+  taskById: Map<number, NormalizedTaskDefinition>
+): Set<number> {
+  const expanded = new Set(selectedIds);
+  const queue = [...selectedIds];
+
+  while (queue.length > 0) {
+    const taskId = queue.pop() as number;
+    const task = taskById.get(taskId);
+    if (!task) {
+      continue;
+    }
+
+    const prereq = task.requiredTaskId;
+    if (prereq === NO_PREREQ_TASK_ID || expanded.has(prereq)) {
+      continue;
+    }
+
+    if (!taskById.has(prereq)) {
+      throw new Error(`Task ${taskId} has missing prerequisite task ${prereq}.`);
+    }
+
+    expanded.add(prereq);
+    queue.push(prereq);
+  }
+
+  return expanded;
+}
+
+function applyTaskSelection(
+  tasks: NormalizedTaskDefinition[],
+  options: PublishOptions
+): NormalizedTaskDefinition[] {
+  const taskById = new Map(tasks.map((task) => [task.taskId, task]));
+  let selected = tasks;
+
+  if (options.taskIds.length > 0) {
+    for (const taskId of options.taskIds) {
+      if (!taskById.has(taskId)) {
+        throw new Error(`--task-ids includes unknown task_id ${taskId}.`);
+      }
+    }
+    const ids = expandPrerequisites(new Set(options.taskIds), taskById);
+    selected = tasks.filter((task) => ids.has(task.taskId));
+  }
+
+  if (options.limit !== null && selected.length > options.limit) {
+    const limitedIds = new Set(selected.slice(0, options.limit).map((task) => task.taskId));
+    const expanded = expandPrerequisites(limitedIds, taskById);
+    selected = tasks.filter((task) => expanded.has(task.taskId));
+  }
+
+  return selected.sort((a, b) => a.taskId - b.taskId);
+}
+
 // =============================================================================
 // STORACHA UPLOAD
 // =============================================================================
@@ -538,19 +639,43 @@ async function main() {
   console.log(`  ${chalk.bold.magenta("📎 Paperclip")} ${chalk.dim("— Admin: Publish Tasks")}`);
   console.log(chalk.dim("━".repeat(60)));
 
-  const taskDefs = options.examples
+  if (options.probeUpload) {
+    const spinner = ora("Uploading probe payload to Storacha tasks space...").start();
+    const cid = await uploadTaskContent({
+      version: "0.1.0",
+      kind: "paperclip.tasks.ucan.probe",
+      created_at: new Date().toISOString(),
+      note: "Probe upload from scripts/publish-task.ts --probe-upload",
+    });
+    spinner.succeed(`Scoped tasks upload succeeded — CID: ${cid}`);
+    console.log(`  ${chalk.dim("🧪 Mode:")} ${chalk.yellow("probe-upload (no on-chain tx)")}`);
+    console.log();
+    return;
+  }
+
+  const allTaskDefs = options.examples
     ? buildExampleTasks()
     : loadTaskDefinitions(CATALOG_PATH);
+  const taskDefs = applyTaskSelection(allTaskDefs, options);
+  if (taskDefs.length === 0) {
+    throw new Error("No tasks selected for publish. Adjust --limit/--task-ids.");
+  }
   const { program, wallet } = getProgram();
 
   console.log(`  ${chalk.dim("👤 Authority:")} ${wallet.publicKey.toBase58()}`);
   console.log(`  ${chalk.dim("🔗 RPC:")} ${RPC_URL}`);
   if (options.examples) {
     console.log(`  ${chalk.dim("📦 Source:")} built-in example tasks (--examples)`);
-    console.log(`  ${chalk.dim("📋 Example tasks:")} ${taskDefs.length}`);
+    console.log(`  ${chalk.dim("📋 Example tasks:")} ${taskDefs.length}/${allTaskDefs.length}`);
   } else {
     console.log(`  ${chalk.dim("📦 Catalog:")} ${path.relative(ROOT_DIR, CATALOG_PATH)}`);
-    console.log(`  ${chalk.dim("📋 Tasks in catalog:")} ${taskDefs.length}`);
+    console.log(`  ${chalk.dim("📋 Tasks selected:")} ${taskDefs.length}/${allTaskDefs.length}`);
+  }
+  if (options.taskIds.length > 0) {
+    console.log(`  ${chalk.dim("🎯 Selected task_ids:")} ${options.taskIds.join(",")}`);
+  }
+  if (options.limit !== null) {
+    console.log(`  ${chalk.dim("🔢 Limit:")} ${options.limit}`);
   }
   if (options.dryRun) {
     console.log(`  ${chalk.dim("🧪 Mode:")} ${chalk.yellow("dry-run (no upload, no tx)")}`);

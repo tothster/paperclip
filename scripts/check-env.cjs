@@ -128,9 +128,6 @@ function checkEnvironmentConfig() {
     );
   }
 
-  const legacyDid = resolveEnv(rootEnv, "W3UP_SPACE_DID");
-  const legacyProof = resolveEnv(rootEnv, "W3UP_SPACE_PROOF");
-
   const dataDid = resolveEnv(rootEnv, "W3UP_DATA_SPACE_DID");
   const dataProof = resolveEnv(rootEnv, "W3UP_DATA_SPACE_PROOF");
   const tasksDid = resolveEnv(rootEnv, "W3UP_TASKS_SPACE_DID");
@@ -138,26 +135,26 @@ function checkEnvironmentConfig() {
   const messagesDid = resolveEnv(rootEnv, "W3UP_MESSAGES_SPACE_DID");
   const messagesProof = resolveEnv(rootEnv, "W3UP_MESSAGES_SPACE_PROOF");
 
-  if (!dataProof && !legacyProof) {
+  if (!dataProof) {
     out.warnings.push(
-      "Missing Storacha proof for data uploads. Set W3UP_DATA_SPACE_PROOF (preferred) or legacy W3UP_SPACE_PROOF before real uploads."
+      "Missing Storacha proof for data uploads. Set W3UP_DATA_SPACE_PROOF."
     );
   }
 
-  if (!dataDid && !legacyDid) {
+  if (!dataDid) {
     out.warnings.push(
-      "No DID configured for data uploads (W3UP_DATA_SPACE_DID or legacy W3UP_SPACE_DID). Uploads may still work if proof includes audience, but explicit DID is recommended."
+      "No DID configured for data uploads. Set W3UP_DATA_SPACE_DID."
     );
   }
 
   if (!tasksProof) {
     out.warnings.push(
-      "W3UP_TASKS_SPACE_PROOF is not set. Task publishing will fall back to legacy proof (if present)."
+      "W3UP_TASKS_SPACE_PROOF is not set. Task publishing requires scoped tasks proof."
     );
   }
   if (!tasksDid) {
     out.warnings.push(
-      "W3UP_TASKS_SPACE_DID is not set. Task publishing will use proof-inferred DID or legacy DID."
+      "W3UP_TASKS_SPACE_DID is not set. Task publishing requires scoped tasks DID."
     );
   }
   if (!messagesProof) {

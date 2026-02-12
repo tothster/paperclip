@@ -3,7 +3,10 @@
 target
 **/*.rs.bk
 node_modules
+.env
+cli/.env
 cli/dist
 cli/baked-config.json
 test-ledger
 .yarn
+storacha-ucans/

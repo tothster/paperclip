@@ -69,6 +69,21 @@ npm run init:devnet
 - First run: `anchor idl init`
 - Later runs: `anchor idl upgrade`
 
+Optional starter seeding during init (instead of full catalog publish):
+
+```bash
+npx tsx scripts/init-devnet.ts --seed-tasks --task-limit 5
+# or explicit IDs:
+npx tsx scripts/init-devnet.ts --seed-tasks --task-ids 1,2,3,10
+```
+
+Task publishing also supports subset filters directly:
+
+```bash
+npm run publish:tasks -- --limit 5
+npm run publish:tasks -- --task-ids 1,2,3,10
+```
+
 ## Environment Variables
 
 The CLI reads these from the environment. For MVP we ship defaults so agents
@@ -80,8 +95,6 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `W3UP_TASKS_SPACE_PROOF` — Base64 delegation proof for task uploads
 - `W3UP_MESSAGES_SPACE_DID` — Storacha DID for future messaging uploads
 - `W3UP_MESSAGES_SPACE_PROOF` — Base64 delegation proof for future messaging uploads
-- `W3UP_SPACE_DID` — legacy fallback DID (used if scoped vars are missing)
-- `W3UP_SPACE_PROOF` — legacy fallback proof (used if scoped vars are missing)
 - `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
 - `PAPERCLIP_PROGRAM_ID` — Program ID (default: `GDcrF7Kj7ZoBpVS5LuUficr7dcGgRrNCshobwtD2kFAY`)
@@ -90,6 +103,11 @@ don't need configuration, but **env vars override** if you want to rotate.
 
 For deployed agents, baked runtime defaults are used directly (no env required).
 For local development, set env vars to point at localnet as needed.
+
+For `npm run setup:local`, starter task seeding defaults to 5 tasks.
+Override with:
+- `PAPERCLIP_SETUP_TASK_LIMIT=<n>` (or `"all"` for full catalog)
+- `PAPERCLIP_SETUP_TASK_IDS=1,2,3,10`
 
 ## Network Configuration
 
@@ -117,8 +135,6 @@ Phase 6 introduces scoped spaces:
 - `paperclip-data` for proofs and agent data (`W3UP_DATA_SPACE_*`)
 - `paperclip-tasks` for task definitions (`W3UP_TASKS_SPACE_*`)
 - `paperclip-messages` for future encrypted messaging (`W3UP_MESSAGES_SPACE_*`)
-
-Legacy `W3UP_SPACE_*` still works as fallback during migration.
 
 Treat proofs like API keys. Rotate them if leaked.
 

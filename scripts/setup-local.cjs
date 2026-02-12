@@ -11,7 +11,7 @@
  * 5. Builds program
  * 6. Deploys program
  * 7. Runs Anchor tests (protocol state)
- * 8. Publishes tasks to Storacha
+ * 8. Publishes a starter task subset to Storacha
  * 9. Syncs program ID to CLI config
  * 10. Rebuilds CLI
  */
@@ -70,6 +70,30 @@ function promptUser(question, defaultYes = null) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resolveTaskPublishArgs() {
+  const ids = process.env.PAPERCLIP_SETUP_TASK_IDS?.trim();
+  if (ids) {
+    return `--task-ids ${ids}`;
+  }
+
+  const limitRaw = process.env.PAPERCLIP_SETUP_TASK_LIMIT?.trim();
+  if (!limitRaw) {
+    return "--limit 5";
+  }
+
+  if (limitRaw.toLowerCase() === "all") {
+    return "";
+  }
+
+  const limit = Number(limitRaw);
+  if (!Number.isInteger(limit) || limit <= 0) {
+    throw new Error(
+      `Invalid PAPERCLIP_SETUP_TASK_LIMIT="${limitRaw}". Use a positive integer or "all".`
+    );
+  }
+  return `--limit ${limit}`;
 }
 
 async function waitForValidator(maxRetries = 30) {
@@ -198,15 +222,31 @@ async function main() {
     }
   }
 
-  // Step 8: Publish tasks to Storacha
-  log.step(8, "Publishing tasks to Storacha...");
-  log.cmd("npx tsx scripts/publish-task.ts");
+  // Step 8: Publish starter tasks to Storacha
+  log.step(8, "Publishing starter tasks to Storacha...");
+  let publishArgs = "--limit 5";
   try {
-    execSync("npx tsx publish-task.ts", { cwd: scriptsDir, stdio: "inherit" });
-    log.success("Tasks published to Storacha");
+    publishArgs = resolveTaskPublishArgs();
+  } catch (error) {
+    log.error(error.message);
+    process.exit(1);
+  }
+  const publishCmd = `npx tsx scripts/publish-task.ts ${publishArgs}`.trim();
+  log.info(
+    publishArgs
+      ? `Task seed selection: ${publishArgs}`
+      : "Task seed selection: all catalog tasks"
+  );
+  log.cmd(publishCmd);
+  try {
+    execSync(`npx tsx publish-task.ts ${publishArgs}`.trim(), {
+      cwd: scriptsDir,
+      stdio: "inherit",
+    });
+    log.success("Task seed publish completed");
   } catch (error) {
     log.warn(`Task publishing failed: ${error.message}`);
-    log.info("You can retry later with: npm run publish:tasks");
+    log.info("You can retry later with: npm run publish:tasks -- --limit 5");
   }
 
   // Step 9: Sync program ID from lib.rs to CLI config

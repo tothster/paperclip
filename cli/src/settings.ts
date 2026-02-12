@@ -76,6 +76,20 @@ export function getNetwork(): PaperclipNetwork {
   return loadSettings().network;
 }
 
+export function getConfiguredNetwork(): PaperclipNetwork | undefined {
+  try {
+    if (!fs.existsSync(CONFIG_FILE)) {
+      return undefined;
+    }
+    const raw = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+    return raw.network === "devnet" || raw.network === "localnet"
+      ? raw.network
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function setNetwork(network: PaperclipNetwork): void {
   const settings = loadSettings();
   settings.network = network;

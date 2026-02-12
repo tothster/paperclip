@@ -12,8 +12,6 @@ import {
   W3UP_MESSAGES_SPACE_PROOF,
   W3UP_TASKS_SPACE_DID,
   W3UP_TASKS_SPACE_PROOF,
-  W3UP_SPACE_DID,
-  W3UP_SPACE_PROOF,
 } from "./config.js";
 import fs from "fs";
 import crypto from "crypto";
@@ -37,42 +35,16 @@ async function createClient() {
   return create();
 }
 
-const warnedFallbackScopes = new Set<StorachaScope>();
-
 function resolveSpace(scope: StorachaScope): { did: string; proof: string } {
   if (scope === "data") {
-    const did = W3UP_DATA_SPACE_DID || W3UP_SPACE_DID;
-    const proof = W3UP_DATA_SPACE_PROOF || W3UP_SPACE_PROOF;
-    if (!W3UP_DATA_SPACE_PROOF && W3UP_SPACE_PROOF && !warnedFallbackScopes.has(scope)) {
-      warnedFallbackScopes.add(scope);
-      console.warn(
-        "[paperclip] Using legacy W3UP_SPACE_* env vars for data uploads. Configure W3UP_DATA_SPACE_* to migrate."
-      );
-    }
-    return { did, proof };
+    return { did: W3UP_DATA_SPACE_DID, proof: W3UP_DATA_SPACE_PROOF };
   }
 
   if (scope === "tasks") {
-    const did = W3UP_TASKS_SPACE_DID || W3UP_SPACE_DID;
-    const proof = W3UP_TASKS_SPACE_PROOF || W3UP_SPACE_PROOF;
-    if (!W3UP_TASKS_SPACE_PROOF && W3UP_SPACE_PROOF && !warnedFallbackScopes.has(scope)) {
-      warnedFallbackScopes.add(scope);
-      console.warn(
-        "[paperclip] Using legacy W3UP_SPACE_* env vars for task uploads. Configure W3UP_TASKS_SPACE_* to migrate."
-      );
-    }
-    return { did, proof };
+    return { did: W3UP_TASKS_SPACE_DID, proof: W3UP_TASKS_SPACE_PROOF };
   }
 
-  const did = W3UP_MESSAGES_SPACE_DID || W3UP_SPACE_DID;
-  const proof = W3UP_MESSAGES_SPACE_PROOF || W3UP_SPACE_PROOF;
-  if (!W3UP_MESSAGES_SPACE_PROOF && W3UP_SPACE_PROOF && !warnedFallbackScopes.has(scope)) {
-    warnedFallbackScopes.add(scope);
-    console.warn(
-      "[paperclip] Using legacy W3UP_SPACE_* env vars for message uploads. Configure W3UP_MESSAGES_SPACE_* to migrate."
-    );
-  }
-  return { did, proof };
+  return { did: W3UP_MESSAGES_SPACE_DID, proof: W3UP_MESSAGES_SPACE_PROOF };
 }
 
 async function ensureSpace(
@@ -83,7 +55,7 @@ async function ensureSpace(
   const proofStr = proof;
   if (!proofStr) {
     throw new Error(
-      `No Storacha delegation proof configured for "${scope}" uploads. Set scoped env vars or legacy W3UP_SPACE_PROOF.`
+      `No Storacha delegation proof configured for "${scope}" uploads. Set W3UP_${scope.toUpperCase()}_SPACE_PROOF.`
     );
   }
 

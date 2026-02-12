@@ -25,8 +25,6 @@ import {
   W3UP_MESSAGES_SPACE_PROOF,
   W3UP_TASKS_SPACE_DID,
   W3UP_TASKS_SPACE_PROOF,
-  W3UP_SPACE_DID,
-  W3UP_SPACE_PROOF,
 } from "../cli/src/config.ts";
 
 const colors = {
@@ -52,15 +50,24 @@ const log = {
 
 type StorachaScope = "data" | "tasks" | "messages";
 
-function parseScope(argv: string[]): StorachaScope {
+interface CleanOptions {
+  scope: StorachaScope;
+  listOnly: boolean;
+  force: boolean;
+}
+
+function parseOptions(argv: string[]): CleanOptions {
   const idx = argv.indexOf("--scope");
+  const listOnly = argv.includes("--list-only");
+  const force = argv.includes("--yes");
+
   if (idx === -1) {
-    return "data";
+    return { scope: "data", listOnly, force };
   }
 
   const value = argv[idx + 1]?.toLowerCase().trim();
   if (value === "data" || value === "tasks" || value === "messages") {
-    return value;
+    return { scope: value, listOnly, force };
   }
 
   throw new Error('Invalid --scope value. Use "data", "tasks", or "messages".');
@@ -69,21 +76,21 @@ function parseScope(argv: string[]): StorachaScope {
 function getScopeConfig(scope: StorachaScope): { did: string; proof: string } {
   if (scope === "tasks") {
     return {
-      did: W3UP_TASKS_SPACE_DID || W3UP_SPACE_DID,
-      proof: W3UP_TASKS_SPACE_PROOF || W3UP_SPACE_PROOF,
+      did: W3UP_TASKS_SPACE_DID,
+      proof: W3UP_TASKS_SPACE_PROOF,
     };
   }
 
   if (scope === "messages") {
     return {
-      did: W3UP_MESSAGES_SPACE_DID || W3UP_SPACE_DID,
-      proof: W3UP_MESSAGES_SPACE_PROOF || W3UP_SPACE_PROOF,
+      did: W3UP_MESSAGES_SPACE_DID,
+      proof: W3UP_MESSAGES_SPACE_PROOF,
     };
   }
 
   return {
-    did: W3UP_DATA_SPACE_DID || W3UP_SPACE_DID,
-    proof: W3UP_DATA_SPACE_PROOF || W3UP_SPACE_PROOF,
+    did: W3UP_DATA_SPACE_DID,
+    proof: W3UP_DATA_SPACE_PROOF,
   };
 }
 
@@ -102,15 +109,16 @@ function promptUser(question: string): Promise<string> {
 }
 
 async function main() {
-  const scope = parseScope(process.argv.slice(2));
+  const options = parseOptions(process.argv.slice(2));
+  const scope = options.scope;
   const { did: configuredDid, proof: configuredProof } = getScopeConfig(scope);
 
   log.header("🧹 Paperclip — Storacha Space Cleanup");
   log.info(`Scope: ${scope}`);
 
-  if (!STORACHA_AGENT_KEY || !configuredProof) {
+  if (!STORACHA_AGENT_KEY || !configuredProof || !configuredDid) {
     log.error(
-      `Missing STORACHA_AGENT_KEY or scoped proof for "${scope}" in CLI config.`
+      `Missing STORACHA_AGENT_KEY or scoped ${scope} DID/proof in CLI config.`
     );
     log.info("Run: storacha key create && storacha delegation create <did> --base64");
     process.exit(1);
@@ -163,9 +171,19 @@ async function main() {
 
   console.log("");
 
-  const answer = await promptUser(
-    `${colors.yellow}Remove all ${uploads.length} upload(s) from ${scope}?${colors.reset} (y/N): `
-  );
+  if (options.listOnly) {
+    log.info("List-only mode enabled, no removals performed.");
+    return;
+  }
+
+  let answer = "no";
+  if (options.force) {
+    answer = "yes";
+  } else {
+    answer = await promptUser(
+      `${colors.yellow}Remove all ${uploads.length} upload(s) from ${scope}?${colors.reset} (y/N): `
+    );
+  }
 
   if (answer !== "y" && answer !== "yes") {
     log.info("Aborted.");
