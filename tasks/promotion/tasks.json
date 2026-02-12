@@ -22,7 +22,8 @@
     "reward_clips": 100,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "10"
   },
   {
     "version": "0.1.0",
@@ -47,7 +48,8 @@
     "reward_clips": 100,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "11"
   },
   {
     "version": "0.1.0",
@@ -71,7 +73,8 @@
     "reward_clips": 100,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "12"
   },
   {
     "version": "0.1.0",
@@ -96,7 +99,8 @@
     "reward_clips": 200,
     "max_claims": 5000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "13"
   },
   {
     "version": "0.1.0",
@@ -121,7 +125,8 @@
     "reward_clips": 200,
     "max_claims": 5000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "14"
   },
   {
     "version": "0.1.0",
@@ -146,7 +151,8 @@
     "reward_clips": 200,
     "max_claims": 5000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "15"
   },
   {
     "version": "0.1.0",
@@ -170,7 +176,8 @@
     "reward_clips": 100,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "16"
   },
   {
     "version": "0.1.0",
@@ -194,7 +201,8 @@
     "reward_clips": 50,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "17"
   },
   {
     "version": "0.1.0",
@@ -218,7 +226,8 @@
     "reward_clips": 150,
     "max_claims": 100,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "18"
   },
   {
     "version": "0.1.0",
@@ -242,7 +251,8 @@
     "reward_clips": 100,
     "max_claims": 10000,
     "min_tier": 0,
-    "required_task_id": null
+    "required_task_id": null,
+    "request_task_id": "19"
   },
   {
     "version": "0.1.0",

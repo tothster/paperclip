@@ -3,15 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import {
-  NETWORK,
-  PROGRAM_ID,
-  RPC_FALLBACK_URL,
-  RPC_URL,
-  WALLET_PATH,
-  WALLET_TYPE,
-} from "./config.js";
-import { getPrivyWalletInstance, PrivyAnchorProvider } from "./privy.js";
+import { PROGRAM_ID, RPC_URL, WALLET_PATH, WALLET_TYPE } from "./config.js";
+import { getPrivyWalletInstance } from "./privy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,47 +14,6 @@ const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
 const INVITE_SEED = Buffer.from("invite");
-const IDL_FILENAME = "paperclip_protocol.json";
-const RPC_COMMITMENT = "confirmed";
-
-function normalizeRpcUrl(url: string): string {
-  return url.trim().replace(/\/+$/, "");
-}
-
-function errMessage(err: unknown): string {
-  if (err instanceof Error && err.message) return err.message;
-  return String(err);
-}
-
-async function resolveConnection(): Promise<anchor.web3.Connection> {
-  const primary = new anchor.web3.Connection(RPC_URL, RPC_COMMITMENT);
-  const fallback = RPC_FALLBACK_URL;
-
-  if (
-    NETWORK === "localnet" ||
-    !fallback ||
-    normalizeRpcUrl(fallback) === normalizeRpcUrl(RPC_URL)
-  ) {
-    return primary;
-  }
-
-  try {
-    await primary.getLatestBlockhash(RPC_COMMITMENT);
-    return primary;
-  } catch (primaryErr) {
-    const fallbackConn = new anchor.web3.Connection(fallback, RPC_COMMITMENT);
-    try {
-      await fallbackConn.getLatestBlockhash(RPC_COMMITMENT);
-      return fallbackConn;
-    } catch (fallbackErr) {
-      throw new Error(
-        `RPC unavailable: primary(${RPC_URL})=${errMessage(
-          primaryErr
-        )}; fallback(${fallback})=${errMessage(fallbackErr)}`
-      );
-    }
-  }
-}
 
 export function loadKeypair(filePath: string): Keypair {
   const raw = fs.readFileSync(filePath, "utf8");
@@ -70,28 +22,30 @@ export function loadKeypair(filePath: string): Keypair {
 }
 
 export function getLocalProvider(): anchor.AnchorProvider {
-  const connection = new anchor.web3.Connection(RPC_URL, RPC_COMMITMENT);
+  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
   const keypair = loadKeypair(WALLET_PATH);
   const wallet = new anchor.Wallet(keypair);
   return new anchor.AnchorProvider(connection, wallet, {
-    commitment: RPC_COMMITMENT,
+    commitment: "confirmed",
   });
 }
 
 export async function getProvider(): Promise<anchor.AnchorProvider> {
-  const connection = await resolveConnection();
+  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
 
   if (WALLET_TYPE === "privy") {
     const privyWallet = await getPrivyWalletInstance();
-    return new PrivyAnchorProvider(connection, privyWallet, {
-      commitment: RPC_COMMITMENT,
-    });
+    return new anchor.AnchorProvider(
+      connection,
+      privyWallet as unknown as anchor.Wallet,
+      { commitment: "confirmed" }
+    );
   }
 
   const keypair = loadKeypair(WALLET_PATH);
   const wallet = new anchor.Wallet(keypair);
   return new anchor.AnchorProvider(connection, wallet, {
-    commitment: RPC_COMMITMENT,
+    commitment: "confirmed",
   });
 }
 
@@ -99,25 +53,14 @@ export async function getProgram(): Promise<anchor.Program<anchor.Idl>> {
   const provider = await getProvider();
   anchor.setProvider(provider);
 
-  const packagedIdlPath = path.resolve(__dirname, "..", "idl", IDL_FILENAME);
-  const workspaceIdlPath = path.resolve(
+  const idlPath = path.resolve(
     __dirname,
     "..",
     "..",
     "target",
     "idl",
-    IDL_FILENAME
+    "paperclip_protocol.json"
   );
-  const idlPath = fs.existsSync(packagedIdlPath)
-    ? packagedIdlPath
-    : workspaceIdlPath;
-
-  if (!fs.existsSync(idlPath)) {
-    throw new Error(
-      `IDL not found. Looked in: ${packagedIdlPath} and ${workspaceIdlPath}`
-    );
-  }
-
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8")) as anchor.Idl;
   // Override address with env-configurable PROGRAM_ID
   (idl as any).address = PROGRAM_ID.toBase58();

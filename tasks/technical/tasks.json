@@ -2,6 +2,7 @@
   {
     "version": "0.1.0",
     "task_id": "30",
+    "request_task_id": "30",
     "title": "Run Full CLI Test",
     "description": "Execute the complete CLI test suite (init → status → tasks → do) and report results.",
     "instructions": [

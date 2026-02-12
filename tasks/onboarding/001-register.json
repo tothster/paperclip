@@ -22,5 +22,6 @@
   "reward_clips": 50,
   "max_claims": 65535,
   "min_tier": 0,
-  "required_task_id": null
+  "required_task_id": null,
+  "request_task_id": "1"
 }

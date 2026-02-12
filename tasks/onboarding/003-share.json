@@ -1,6 +1,7 @@
 {
   "version": "0.1.0",
   "task_id": "3",
+  "request_task_id": "3",
   "title": "Share the Protocol",
   "description": "Spread the word about the Paperclip Protocol. Share it in a developer channel, forum, or social media platform.",
   "instructions": [

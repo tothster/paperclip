@@ -64,6 +64,8 @@ interface PublishOptions {
 interface RawTaskDefinition {
   task_id?: string | number;
   taskId?: number;
+  request_task_id?: string | number | null;
+  requestTaskId?: number | null;
   title?: string;
   description?: string;
   instructions?: string[] | string;
@@ -388,6 +390,20 @@ function normalizeTask(raw: RawTaskDefinition, sourceFile: string): NormalizedTa
   const taskIdValue = raw.task_id ?? raw.taskId;
   const taskId = assertInteger(taskIdValue, "task_id", sourceFile);
 
+  const requestTaskIdRaw = raw.request_task_id ?? raw.requestTaskId;
+  if (
+    requestTaskIdRaw !== undefined &&
+    requestTaskIdRaw !== null &&
+    requestTaskIdRaw !== ""
+  ) {
+    const requestTaskId = assertInteger(requestTaskIdRaw, "request_task_id", sourceFile);
+    if (requestTaskId !== taskId) {
+      throw new Error(
+        `request_task_id mismatch in ${sourceFile}: task_id=${taskId}, request_task_id=${requestTaskId}`
+      );
+    }
+  }
+
   const title = typeof raw.title === "string" ? raw.title.trim() : "";
   if (!title) {
     throw new Error(`Missing title in ${sourceFile} (task_id=${taskId})`);
@@ -442,6 +458,7 @@ function normalizeTask(raw: RawTaskDefinition, sourceFile: string): NormalizedTa
   const content = {
     ...raw,
     task_id: String(taskId),
+    request_task_id: String(taskId),
     reward_clips: rewardClips,
     max_claims: maxClaims,
     min_tier: minTier,

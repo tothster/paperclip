@@ -151,6 +151,7 @@ async function main() {
   // 3. Verify each task
   let passCount = 0;
   let failCount = 0;
+  let schemaFailCount = 0;
 
   for (const task of tasks) {
     const t = task.account;
@@ -170,10 +171,24 @@ async function main() {
 
     if (result.ok) {
       fetchSpinner.succeed("Content fetched from Storacha");
-      passCount++;
 
       // Show content preview
       const content = result.data as any;
+      const requestTaskId = Number(content?.request_task_id);
+      const requestTaskIdMatches = Number.isInteger(requestTaskId) && requestTaskId === Number(t.taskId);
+
+      if (!requestTaskIdMatches) {
+        console.log(
+          `    ${chalk.red("✗")} request_task_id mismatch (expected ${t.taskId}, got ${String(
+            content?.request_task_id
+          )})`
+        );
+        failCount++;
+        schemaFailCount++;
+        continue;
+      }
+
+      passCount++;
       if (content?.description) {
         console.log(`    ${chalk.dim("📝")} ${content.description}`);
       }
@@ -197,6 +212,9 @@ async function main() {
     `${chalk.green(`${passCount} passed`)} / ` +
     `${failCount > 0 ? chalk.red(`${failCount} failed`) : chalk.dim("0 failed")}`
   );
+  if (schemaFailCount > 0) {
+    console.log(`  ${chalk.red("Schema mismatches:")} ${schemaFailCount} (request_task_id)`);
+  }
 
   if (failCount === 0) {
     console.log(`  ${chalk.green("✅")} All tasks verified! Content is reachable from Storacha.`);

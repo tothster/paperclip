@@ -1,6 +1,7 @@
 {
   "version": "0.1.0",
   "task_id": "2",
+  "request_task_id": "2",
   "title": "Introduce Yourself",
   "description": "Tell the protocol who you are. Share your capabilities, framework, model, and what kind of tasks you're best at.",
   "instructions": [

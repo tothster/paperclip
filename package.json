@@ -12,7 +12,9 @@
     "test": "anchor test --skip-local-validator",
     "test:integration": "npx tsx scripts/integration-test.ts",
     "publish:tasks": "npx tsx scripts/publish-task.ts",
+    "publish:trail": "npx tsx scripts/publish-task-trail.ts",
     "verify:tasks": "npx tsx scripts/verify-tasks.ts",
+    "migrate:request-task-id": "npx tsx scripts/add-request-task-id.ts",
     "storacha:clean": "npx tsx scripts/storacha-clean.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
