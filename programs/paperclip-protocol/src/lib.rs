@@ -23,6 +23,17 @@ pub mod paperclip_protocol {
         register_agent::handler(ctx)
     }
 
+    pub fn register_agent_with_invite(
+        ctx: Context<RegisterAgentWithInvite>,
+        invite_code: [u8; 32],
+    ) -> Result<()> {
+        register_agent_with_invite::handler(ctx, invite_code)
+    }
+
+    pub fn create_invite(ctx: Context<CreateInvite>) -> Result<()> {
+        create_invite::handler(ctx)
+    }
+
     pub fn create_task(
         ctx: Context<CreateTask>,
         task_id: u32,

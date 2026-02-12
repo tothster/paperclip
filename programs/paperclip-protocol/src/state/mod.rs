@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::{
-    AGENT_RESERVED_BYTES, CLAIM_RESERVED_BYTES, PROTOCOL_RESERVED_BYTES, TASK_RESERVED_BYTES,
+    AGENT_RESERVED_BYTES, CLAIM_RESERVED_BYTES, INVITE_RESERVED_BYTES, PROTOCOL_RESERVED_BYTES,
+    TASK_RESERVED_BYTES,
 };
 
 #[account]
@@ -31,11 +32,15 @@ pub struct AgentAccount {
     pub tasks_completed: u32,
     pub registered_at: i64,
     pub last_active_at: i64,
+    pub invites_sent: u32,
+    pub invites_redeemed: u32,
+    pub invited_by: Pubkey,
     pub reserved: [u8; AGENT_RESERVED_BYTES],
 }
 
 impl AgentAccount {
-    pub const SPACE: usize = 8 + 1 + 1 + 32 + 8 + 1 + 4 + 8 + 8 + AGENT_RESERVED_BYTES;
+    pub const SPACE: usize =
+        8 + 1 + 1 + 32 + 8 + 1 + 4 + 8 + 8 + 4 + 4 + 32 + AGENT_RESERVED_BYTES;
 }
 
 #[account]
@@ -75,4 +80,21 @@ pub struct ClaimRecord {
 
 impl ClaimRecord {
     pub const SPACE: usize = 8 + 1 + 1 + 4 + 32 + 64 + 8 + 8 + CLAIM_RESERVED_BYTES;
+}
+
+#[account]
+pub struct InviteRecord {
+    pub bump: u8,
+    pub layout_version: u8,
+    pub inviter_wallet: Pubkey,
+    pub invite_code: [u8; 32],
+    pub invites_redeemed: u32,
+    pub created_at: i64,
+    pub is_active: bool,
+    pub reserved: [u8; INVITE_RESERVED_BYTES],
+}
+
+impl InviteRecord {
+    pub const SPACE: usize =
+        8 + 1 + 1 + 32 + 32 + 4 + 8 + 1 + INVITE_RESERVED_BYTES;
 }

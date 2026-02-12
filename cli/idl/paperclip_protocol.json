@@ -8,6 +8,95 @@
   },
   "instructions": [
     {
+      "name": "create_invite",
+      "discriminator": [
+        160,
+        94,
+        130,
+        54,
+        134,
+        245,
+        255,
+        229
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "invite_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  110,
+                  118,
+                  105,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "create_task",
       "discriminator": [
         194,
@@ -299,6 +388,131 @@
       "args": []
     },
     {
+      "name": "register_agent_with_invite",
+      "discriminator": [
+        93,
+        139,
+        112,
+        31,
+        92,
+        228,
+        15,
+        21
+      ],
+      "accounts": [
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "inviter_agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "inviter_agent.wallet",
+                "account": "AgentAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "invite_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  110,
+                  118,
+                  105,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "inviter_agent.wallet",
+                "account": "AgentAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "invite_code",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "submit_proof",
       "discriminator": [
         54,
@@ -456,6 +670,19 @@
       ]
     },
     {
+      "name": "InviteRecord",
+      "discriminator": [
+        155,
+        77,
+        116,
+        150,
+        181,
+        187,
+        25,
+        72
+      ]
+    },
+    {
       "name": "ProtocolState",
       "discriminator": [
         33,
@@ -522,6 +749,21 @@
       "code": 6007,
       "name": "InvalidTaskPrerequisite",
       "msg": "Task cannot require itself as a prerequisite"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidInviteCode",
+      "msg": "Invalid invite code"
+    },
+    {
+      "code": 6009,
+      "name": "InviteInactive",
+      "msg": "Invite is inactive"
+    },
+    {
+      "code": 6010,
+      "name": "SelfReferralNotAllowed",
+      "msg": "Self-referral is not allowed"
     }
   ],
   "types": [
@@ -563,11 +805,23 @@
             "type": "i64"
           },
           {
+            "name": "invites_sent",
+            "type": "u32"
+          },
+          {
+            "name": "invites_redeemed",
+            "type": "u32"
+          },
+          {
+            "name": "invited_by",
+            "type": "pubkey"
+          },
+          {
             "name": "reserved",
             "type": {
               "array": [
                 "u8",
-                128
+                88
               ]
             }
           }
@@ -611,6 +865,56 @@
           {
             "name": "completed_at",
             "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InviteRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "layout_version",
+            "type": "u8"
+          },
+          {
+            "name": "inviter_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "invite_code",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "invites_redeemed",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
           },
           {
             "name": "reserved",

@@ -13,6 +13,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
+const INVITE_SEED = Buffer.from("invite");
 const IDL_FILENAME = "paperclip_protocol.json";
 
 export function loadKeypair(filePath: string): Keypair {
@@ -123,6 +124,16 @@ export function getClaimPda(
 ): PublicKey {
   return PublicKey.findProgramAddressSync(
     [CLAIM_SEED, taskIdBytes(taskId), agent.toBuffer()],
+    programId
+  )[0];
+}
+
+export function getInvitePda(
+  programId: PublicKey,
+  inviter: PublicKey
+): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [INVITE_SEED, inviter.toBuffer()],
     programId
   )[0];
 }

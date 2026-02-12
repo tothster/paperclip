@@ -40,6 +40,9 @@ pub fn handler(ctx: Context<RegisterAgent>) -> Result<()> {
     agent_account.tasks_completed = 0;
     agent_account.registered_at = now;
     agent_account.last_active_at = now;
+    agent_account.invites_sent = 0;
+    agent_account.invites_redeemed = 0;
+    agent_account.invited_by = Pubkey::default();
     agent_account.reserved = [0; AGENT_RESERVED_BYTES];
 
     protocol.total_agents = protocol

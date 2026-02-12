@@ -12,6 +12,7 @@ import {
   fromFixedBytes,
   getAgentPda,
   getClaimPda,
+  getInvitePda,
   getProgram,
   getProtocolPda,
   getTaskPda,
@@ -48,6 +49,16 @@ function jsonOutput(data: unknown) {
 function shortPubkey(key: string): string {
   if (key.length <= 12) return key;
   return `${key.slice(0, 6)}...${key.slice(-4)}`;
+}
+
+function asPubkey(value: any): anchor.web3.PublicKey {
+  return value instanceof anchor.web3.PublicKey
+    ? value
+    : new anchor.web3.PublicKey(value);
+}
+
+function isZeroPubkey(value: any): boolean {
+  return asPubkey(value).toBuffer().equals(Buffer.alloc(32));
 }
 
 async function getAgentAccount(
@@ -135,7 +146,7 @@ const cli = new Command();
 cli
   .name("pc")
   .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
-  .version("0.1.2")
+  .version("0.1.3")
   .option("-n, --network <network>", "Network to use (devnet|localnet)")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")
@@ -187,7 +198,8 @@ cli.hook("preAction", () => {
 cli
   .command("init")
   .description("Register as an agent on the protocol")
-  .action(async () => {
+  .option("--invite <code>", "Invite code (inviter wallet pubkey)")
+  .action(async (opts: { invite?: string }) => {
     applyMockFlag();
 
     // If using Privy, auto-provision wallet on first init
@@ -245,15 +257,43 @@ cli
       const protocolPda = getProtocolPda(programClient.programId);
       const agentPda = getAgentPda(programClient.programId, pubkey);
 
-      await programClient.methods
-        .registerAgent()
-        .accounts({
-          protocol: protocolPda,
-          agentAccount: agentPda,
-          agent: pubkey,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc();
+      if (opts.invite) {
+        let inviterPubkey: anchor.web3.PublicKey;
+        try {
+          inviterPubkey = new anchor.web3.PublicKey(opts.invite);
+        } catch {
+          throw new Error("Invalid invite code format (expected base58 pubkey)");
+        }
+        if (inviterPubkey.equals(pubkey)) {
+          throw new Error("Self-referral is not allowed");
+        }
+
+        const inviterAgentPda = getAgentPda(programClient.programId, inviterPubkey);
+        const invitePda = getInvitePda(programClient.programId, inviterPubkey);
+        const inviteCode = Array.from(inviterPubkey.toBuffer());
+
+        await programClient.methods
+          .registerAgentWithInvite(inviteCode)
+          .accounts({
+            protocol: protocolPda,
+            agentAccount: agentPda,
+            inviterAgent: inviterAgentPda,
+            inviteRecord: invitePda,
+            agent: pubkey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc();
+      } else {
+        await programClient.methods
+          .registerAgent()
+          .accounts({
+            protocol: protocolPda,
+            agentAccount: agentPda,
+            agent: pubkey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc();
+      }
 
       const agent = await (programClient.account as any).agentAccount.fetch(
         agentPda
@@ -266,9 +306,15 @@ cli
           ok: true,
           agent_pubkey: pubkey.toBase58(),
           clips_balance: agent.clipsBalance.toNumber(),
+          invited_by: agent.invitedBy && !isZeroPubkey(agent.invitedBy)
+            ? asPubkey(agent.invitedBy).toBase58()
+            : null,
         });
       } else {
         info("📎 Clips:", agent.clipsBalance.toNumber());
+        if (agent.invitedBy && !isZeroPubkey(agent.invitedBy)) {
+          info("🤝 Invited by:", asPubkey(agent.invitedBy).toBase58());
+        }
         info("📋 Next:", "Run `pc tasks` to see available work");
         blank();
       }
@@ -278,6 +324,72 @@ cli
         jsonOutput({ ok: false, error: parseError(err) });
       } else {
         fail(parseError(err));
+        blank();
+      }
+      process.exit(1);
+    }
+  });
+
+// =============================================================================
+// INVITE COMMAND
+// =============================================================================
+
+cli
+  .command("invite")
+  .description("Create (or show) your invite code")
+  .action(async () => {
+    applyMockFlag();
+    const programClient = await getProgram();
+    const provider = programClient.provider as anchor.AnchorProvider;
+    const wallet = provider.wallet as anchor.Wallet;
+    const pubkey = wallet.publicKey;
+    const agentPda = getAgentPda(programClient.programId, pubkey);
+    const invitePda = getInvitePda(programClient.programId, pubkey);
+
+    const spinner = isJsonMode() ? null : spin("Preparing invite code...");
+    try {
+      await (programClient.account as any).agentAccount.fetch(agentPda);
+
+      let invite: any = null;
+      try {
+        invite = await (programClient.account as any).inviteRecord.fetch(invitePda);
+      } catch {
+        await programClient.methods
+          .createInvite()
+          .accounts({
+            protocol: getProtocolPda(programClient.programId),
+            agentAccount: agentPda,
+            inviteRecord: invitePda,
+            agent: pubkey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc();
+        invite = await (programClient.account as any).inviteRecord.fetch(invitePda);
+      }
+
+      const inviteCode = new anchor.web3.PublicKey(invite.inviteCode).toBase58();
+      spinner?.succeed("Invite ready");
+
+      if (isJsonMode()) {
+        jsonOutput({
+          ok: true,
+          agent_pubkey: pubkey.toBase58(),
+          invite_code: inviteCode,
+          invites_redeemed: invite.invitesRedeemed,
+        });
+      } else {
+        info("🔗 Invite code:", inviteCode);
+        info("👥 Redeemed:", invite.invitesRedeemed);
+        info("📋 Share:", `pc init --invite ${inviteCode}`);
+        blank();
+      }
+    } catch (err) {
+      spinner?.fail("Failed to prepare invite");
+      if (isJsonMode()) {
+        jsonOutput({ ok: false, error: parseError(err) });
+      } else {
+        fail(parseError(err));
+        info("📋 Tip:", "Run `pc init` first to register your agent");
         blank();
       }
       process.exit(1);

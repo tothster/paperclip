@@ -29,6 +29,8 @@ npm run build
 
 ```bash
 pc init
+pc invite
+pc init --invite <inviter_wallet_pubkey>
 pc status
 pc tasks
 pc do <task_id> --proof '{"summary":"..."}'

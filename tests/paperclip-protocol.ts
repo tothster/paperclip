@@ -9,6 +9,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const AGENT_SEED = Buffer.from("agent");
 const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
+const INVITE_SEED = Buffer.from("invite");
 const NO_PREREQ_TASK_ID = 0xffffffff;
 
 function toFixedBytes(input: string, size: number): number[] {
@@ -56,6 +57,13 @@ function getClaimPda(
   )[0];
 }
 
+function getInvitePda(programId: PublicKey, inviter: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [INVITE_SEED, inviter.toBuffer()],
+    programId
+  )[0];
+}
+
 async function airdrop(
   connection: anchor.web3.Connection,
   pubkey: PublicKey,
@@ -86,12 +94,16 @@ describe("paperclip-protocol", () => {
   const agent2 = Keypair.generate();
   const agent3 = Keypair.generate();
   const agent4 = Keypair.generate();
+  const inviterAgent = Keypair.generate();
+  const invitedAgent = Keypair.generate();
 
   before(async () => {
     await airdrop(provider.connection, unauthorized.publicKey);
     await airdrop(provider.connection, agent2.publicKey);
     await airdrop(provider.connection, agent3.publicKey);
     await airdrop(provider.connection, agent4.publicKey);
+    await airdrop(provider.connection, inviterAgent.publicKey);
+    await airdrop(provider.connection, invitedAgent.publicKey);
   });
 
   it("Initializes protocol", async () => {
@@ -126,10 +138,121 @@ describe("paperclip-protocol", () => {
 
     const agent = await program.account.agentAccount.fetch(agentPda);
     assert.equal(agent.layoutVersion, 1);
-    assert.equal(agent.reserved.length, 128);
+    assert.equal(agent.reserved.length, 88);
     assert.equal(agent.clipsBalance.toNumber(), 100);
     assert.equal(agent.efficiencyTier, 0);
     assert.equal(agent.tasksCompleted, 0);
+    assert.equal(agent.invitesSent, 0);
+    assert.equal(agent.invitesRedeemed, 0);
+    assert.equal(
+      Buffer.from(agent.invitedBy.toBuffer()).toString("hex"),
+      Buffer.alloc(32).toString("hex")
+    );
+  });
+
+  it("Creates invite and registers with invite bonuses", async () => {
+    const protocolBefore = await program.account.protocolState.fetch(protocolPda);
+
+    const inviterAgentPda = getAgentPda(program.programId, inviterAgent.publicKey);
+    await program.methods
+      .registerAgent()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: inviterAgentPda,
+        agent: inviterAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([inviterAgent])
+      .rpc();
+
+    const invitePda = getInvitePda(program.programId, inviterAgent.publicKey);
+    await program.methods
+      .createInvite()
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: inviterAgentPda,
+        inviteRecord: invitePda,
+        agent: inviterAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([inviterAgent])
+      .rpc();
+
+    const invite = await program.account.inviteRecord.fetch(invitePda);
+    assert.equal(
+      Buffer.from(invite.inviteCode).toString("hex"),
+      inviterAgent.publicKey.toBuffer().toString("hex")
+    );
+    assert.equal(invite.inviterWallet.toBase58(), inviterAgent.publicKey.toBase58());
+    assert.equal(invite.invitesRedeemed, 0);
+    assert.equal(invite.isActive, true);
+
+    const invitedAgentPda = getAgentPda(program.programId, invitedAgent.publicKey);
+    await program.methods
+      .registerAgentWithInvite(Array.from(inviterAgent.publicKey.toBuffer()))
+      .accounts({
+        protocol: protocolPda,
+        agentAccount: invitedAgentPda,
+        inviterAgent: inviterAgentPda,
+        inviteRecord: invitePda,
+        agent: invitedAgent.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([invitedAgent])
+      .rpc();
+
+    const inviterState = await program.account.agentAccount.fetch(inviterAgentPda);
+    const invitedState = await program.account.agentAccount.fetch(invitedAgentPda);
+    const inviteAfter = await program.account.inviteRecord.fetch(invitePda);
+    const protocolAfter = await program.account.protocolState.fetch(protocolPda);
+
+    assert.equal(inviterState.clipsBalance.toNumber(), 150);
+    assert.equal(inviterState.invitesSent, 1);
+
+    assert.equal(invitedState.clipsBalance.toNumber(), 150);
+    assert.equal(invitedState.invitesRedeemed, 1);
+    assert.equal(invitedState.invitedBy.toBase58(), inviterAgent.publicKey.toBase58());
+
+    assert.equal(inviteAfter.invitesRedeemed, 1);
+    assert.equal(
+      protocolAfter.totalAgents,
+      protocolBefore.totalAgents + 2
+    );
+    assert.equal(
+      protocolAfter.totalClipsDistributed.toNumber(),
+      protocolBefore.totalClipsDistributed.toNumber() + 300
+    );
+  });
+
+  it("Rejects invalid invite code on register_agent_with_invite", async () => {
+    const invalidInvitee = Keypair.generate();
+    await airdrop(provider.connection, invalidInvitee.publicKey);
+
+    const invalidInviteePda = getAgentPda(program.programId, invalidInvitee.publicKey);
+    const inviterAgentPda = getAgentPda(program.programId, inviterAgent.publicKey);
+    const invitePda = getInvitePda(program.programId, inviterAgent.publicKey);
+
+    const badCode = Buffer.alloc(32);
+    badCode.set(Buffer.from("not-a-valid-invite-code"));
+
+    try {
+      await program.methods
+        .registerAgentWithInvite(Array.from(badCode))
+        .accounts({
+          protocol: protocolPda,
+          agentAccount: invalidInviteePda,
+          inviterAgent: inviterAgentPda,
+          inviteRecord: invitePda,
+          agent: invalidInvitee.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([invalidInvitee])
+        .rpc();
+      assert.fail("Expected invalid invite code to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Invalid invite code");
+    }
   });
 
   it("Creates task (authority only)", async () => {
