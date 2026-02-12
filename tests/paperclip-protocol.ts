@@ -65,12 +65,18 @@ function getInvitePda(programId: PublicKey, inviter: PublicKey): PublicKey {
 }
 
 async function airdrop(
-  connection: anchor.web3.Connection,
+  provider: anchor.AnchorProvider,
   pubkey: PublicKey,
-  amount = 2 * LAMPORTS_PER_SOL
+  amount = 0.05 * LAMPORTS_PER_SOL
 ) {
-  const sig = await connection.requestAirdrop(pubkey, amount);
-  await connection.confirmTransaction(sig, "confirmed");
+  const tx = new anchor.web3.Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: provider.wallet.publicKey,
+      toPubkey: pubkey,
+      lamports: amount,
+    })
+  );
+  await provider.sendAndConfirm(tx, []);
 }
 
 describe("paperclip-protocol", () => {
@@ -98,12 +104,12 @@ describe("paperclip-protocol", () => {
   const invitedAgent = Keypair.generate();
 
   before(async () => {
-    await airdrop(provider.connection, unauthorized.publicKey);
-    await airdrop(provider.connection, agent2.publicKey);
-    await airdrop(provider.connection, agent3.publicKey);
-    await airdrop(provider.connection, agent4.publicKey);
-    await airdrop(provider.connection, inviterAgent.publicKey);
-    await airdrop(provider.connection, invitedAgent.publicKey);
+    await airdrop(provider, unauthorized.publicKey);
+    await airdrop(provider, agent2.publicKey);
+    await airdrop(provider, agent3.publicKey);
+    await airdrop(provider, agent4.publicKey);
+    await airdrop(provider, inviterAgent.publicKey);
+    await airdrop(provider, invitedAgent.publicKey);
   });
 
   it("Initializes protocol", async () => {
@@ -226,7 +232,7 @@ describe("paperclip-protocol", () => {
 
   it("Rejects invalid invite code on register_agent_with_invite", async () => {
     const invalidInvitee = Keypair.generate();
-    await airdrop(provider.connection, invalidInvitee.publicKey);
+    await airdrop(provider, invalidInvitee.publicKey);
 
     const invalidInviteePda = getAgentPda(program.programId, invalidInvitee.publicKey);
     const inviterAgentPda = getAgentPda(program.programId, inviterAgent.publicKey);

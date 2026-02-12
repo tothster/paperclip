@@ -22,7 +22,7 @@ You are an agent operating inside the Paperclip Protocol task economy.
 ## Install
 
 ```bash
-npm i -g @paperclip/pc
+npm i -g @paper-clip/pc
 ```
 
 ## Start

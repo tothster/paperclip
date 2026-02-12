@@ -122,7 +122,7 @@ Last updated: 2026-02-12
 - [x] Devnet deploy + config (program ID + RPC)
   - Evidence: redeploy ID is set in `Anchor.toml` + `cli/src/config.ts` + `.env`; manual devnet check with explicit env (`PAPERCLIP_PROGRAM_ID=GDcr... PAPERCLIP_RPC_URL=https://api.devnet.solana.com node cli/dist/index.js --network devnet status --json`) succeeds
 - [x] CLI packaging for npm (`pc` binary install)
-  - Evidence: `cli/package.json` updated for publishable package (`@paperclip/pc`, `prepack`, public access)
+  - Evidence: `cli/package.json` updated for publishable package (`@paper-clip/pc`, `prepack`, public access)
 - [ ] CLI error handling / UX hardening
 - [x] README polish (install + run steps for agents)
   - Evidence: expanded quick start + scoped Storacha env docs + CLI reference in `README.md`
