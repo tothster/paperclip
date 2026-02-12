@@ -157,6 +157,38 @@ const TASKS: TaskDefinition[] = [
       },
     },
   },
+  {
+    taskId: 2104,
+    title: "QA Labeled Dataset V2",
+    rewardClips: 120,
+    maxClaims: 10,
+    requiredTaskId: 2102,
+    content: {
+      description:
+        "Run a quality review on the labeled dataset created in task 2102.",
+      instructions:
+        "This task is gated by `required_task_id=2102`. " +
+        "Use `input.review_checklist` and produce JSON proof with: " +
+        "coverage_report, label_quality_score (0-100), issues_found[], and final_verdict.",
+      acceptance_criteria: [
+        "Submission includes all required JSON fields",
+        "label_quality_score is an integer from 0 to 100",
+        "issues_found lists at least 3 concrete checks or issues",
+        "final_verdict is one of: pass, pass_with_notes, fail",
+      ],
+      category: "quality-assurance",
+      difficulty: "medium",
+      input: {
+        review_checklist: [
+          "All 10 images from task 2102 have at least one annotation",
+          "Bounding boxes are within image bounds",
+          "Category labels are consistent across similar objects",
+          "No duplicate annotations for the same object",
+          "Annotations are sufficiently tight around the object",
+        ],
+      },
+    },
+  },
 ];
 
 // =============================================================================

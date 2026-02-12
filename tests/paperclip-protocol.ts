@@ -79,6 +79,8 @@ describe("paperclip-protocol", () => {
   const task3Id = 3;
   const task4Id = 4;
   const task5Id = 5;
+  const task6Id = 6;
+  const task7Id = 7;
 
   const unauthorized = Keypair.generate();
   const agent2 = Keypair.generate();
@@ -479,6 +481,92 @@ describe("paperclip-protocol", () => {
 
     const providerClaim = await program.account.claimRecord.fetch(providerClaimPda);
     assert.equal(providerClaim.taskId, task4Id);
+  });
+
+  it("Persists required_task_id and enforces agent-specific prerequisite claims", async () => {
+    const prereqTaskPda = getTaskPda(program.programId, task6Id);
+    await program.methods
+      .createTask(
+        task6Id,
+        toFixedBytes("Agent-specific prereq base", 32),
+        toFixedBytes("bafy-agent-specific-prereq-base", 64),
+        new anchor.BN(15),
+        5,
+        0,
+        NO_PREREQ_TASK_ID
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: prereqTaskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const dependentTaskPda = getTaskPda(program.programId, task7Id);
+    await program.methods
+      .createTask(
+        task7Id,
+        toFixedBytes("Agent-specific prereq child", 32),
+        toFixedBytes("bafy-agent-specific-prereq-child", 64),
+        new anchor.BN(15),
+        5,
+        0,
+        task6Id
+      )
+      .accounts({
+        protocol: protocolPda,
+        authority: provider.wallet.publicKey,
+        task: dependentTaskPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const dependentTask = await program.account.taskRecord.fetch(dependentTaskPda);
+    assert.equal(dependentTask.requiredTaskId, task6Id);
+
+    const agent4Pda = getAgentPda(program.programId, agent4.publicKey);
+    const agent4PrereqClaimPda = getClaimPda(program.programId, task6Id, agent4.publicKey);
+    await program.methods
+      .submitProof(task6Id, toFixedBytes("bafy-agent4-prereq-proof", 64))
+      .accounts({
+        protocol: protocolPda,
+        task: prereqTaskPda,
+        agentAccount: agent4Pda,
+        claim: agent4PrereqClaimPda,
+        agent: agent4.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([agent4])
+      .rpc();
+
+    const providerAgentPda = getAgentPda(program.programId, provider.wallet.publicKey);
+    const providerDependentClaimPda = getClaimPda(
+      program.programId,
+      task7Id,
+      provider.wallet.publicKey
+    );
+
+    try {
+      await program.methods
+        .submitProof(task7Id, toFixedBytes("bafy-provider-wrong-prereq", 64))
+        .accounts({
+          protocol: protocolPda,
+          task: dependentTaskPda,
+          agentAccount: providerAgentPda,
+          claim: providerDependentClaimPda,
+          agent: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .remainingAccounts([
+          { pubkey: agent4PrereqClaimPda, isWritable: false, isSigner: false },
+        ])
+        .rpc();
+      assert.fail("Expected agent-specific prerequisite validation to fail");
+    } catch (err) {
+      const message = (err as Error).toString();
+      assert.include(message, "Invalid prerequisite account provided");
+    }
   });
 
   it("Rejects claims when max_claims reached", async () => {
