@@ -29,7 +29,13 @@ import {
   type CliMode,
   type PaperclipNetwork,
 } from "./settings.js";
-import { NETWORK, PROGRAM_ID, RPC_URL, WALLET_TYPE } from "./config.js";
+import {
+  NETWORK,
+  PROGRAM_ID,
+  RPC_FALLBACK_URL,
+  RPC_URL,
+  WALLET_TYPE,
+} from "./config.js";
 import { provisionPrivyWallet } from "./privy.js";
 import type { AgentState, TaskInfo } from "./types.js";
 
@@ -791,6 +797,7 @@ configCmd.action(() => {
       network: NETWORK,
       saved_network: savedNetwork,
       rpc_url: RPC_URL,
+      rpc_fallback_url: RPC_FALLBACK_URL,
       program_id: PROGRAM_ID.toBase58(),
       config_path: configPath(),
     });
@@ -801,6 +808,7 @@ configCmd.action(() => {
     info("🌐 Network:", NETWORK);
     info("📝 Saved network:", savedNetwork);
     info("🔗 RPC:", RPC_URL);
+    info("🛟 RPC fallback:", RPC_FALLBACK_URL);
     info("🧾 Program:", PROGRAM_ID.toBase58());
     info("📁 Config:", configPath());
     blank();
@@ -816,6 +824,7 @@ configCmd
       network: getNetwork(),
       effective_network: NETWORK,
       rpc_url: RPC_URL,
+      rpc_fallback_url: RPC_FALLBACK_URL,
       program_id: PROGRAM_ID.toBase58(),
       config_path: configPath(),
     };
@@ -830,6 +839,7 @@ configCmd
         info("📝 Saved network:", values.network);
         info("🌐 Effective network:", values.effective_network);
         info("🔗 RPC:", values.rpc_url);
+        info("🛟 RPC fallback:", values.rpc_fallback_url);
         info("🧾 Program:", values.program_id);
         info("📁 Config:", values.config_path);
         blank();
@@ -843,11 +853,11 @@ configCmd
         jsonOutput({
           ok: false,
           error:
-            'Unknown key. Valid keys: mode, network, effective_network, rpc_url, program_id, config_path',
+            'Unknown key. Valid keys: mode, network, effective_network, rpc_url, rpc_fallback_url, program_id, config_path',
         });
       } else {
         fail(
-          'Unknown key. Valid keys: mode, network, effective_network, rpc_url, program_id, config_path'
+          'Unknown key. Valid keys: mode, network, effective_network, rpc_url, rpc_fallback_url, program_id, config_path'
         );
       }
       process.exit(1);

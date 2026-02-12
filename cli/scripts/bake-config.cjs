@@ -86,6 +86,11 @@ function main() {
   const baked = {
     PAPERCLIP_NETWORK: pick(source, rootEnvExample, "PAPERCLIP_NETWORK"),
     PAPERCLIP_RPC_URL: pick(source, rootEnvExample, "PAPERCLIP_RPC_URL"),
+    PAPERCLIP_RPC_FALLBACK_URL: pick(
+      source,
+      rootEnvExample,
+      "PAPERCLIP_RPC_FALLBACK_URL"
+    ),
     PAPERCLIP_PROGRAM_ID: pick(source, rootEnvExample, "PAPERCLIP_PROGRAM_ID"),
     PAPERCLIP_WALLET: pick(source, rootEnvExample, "PAPERCLIP_WALLET"),
     PAPERCLIP_WALLET_TYPE: pick(source, rootEnvExample, "PAPERCLIP_WALLET_TYPE"),

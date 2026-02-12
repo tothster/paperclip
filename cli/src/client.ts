@@ -3,7 +3,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { PROGRAM_ID, RPC_URL, WALLET_PATH, WALLET_TYPE } from "./config.js";
+import {
+  NETWORK,
+  PROGRAM_ID,
+  RPC_FALLBACK_URL,
+  RPC_URL,
+  WALLET_PATH,
+  WALLET_TYPE,
+} from "./config.js";
 import { getPrivyWalletInstance, PrivyAnchorProvider } from "./privy.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,6 +22,46 @@ const TASK_SEED = Buffer.from("task");
 const CLAIM_SEED = Buffer.from("claim");
 const INVITE_SEED = Buffer.from("invite");
 const IDL_FILENAME = "paperclip_protocol.json";
+const RPC_COMMITMENT = "confirmed";
+
+function normalizeRpcUrl(url: string): string {
+  return url.trim().replace(/\/+$/, "");
+}
+
+function errMessage(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  return String(err);
+}
+
+async function resolveConnection(): Promise<anchor.web3.Connection> {
+  const primary = new anchor.web3.Connection(RPC_URL, RPC_COMMITMENT);
+  const fallback = RPC_FALLBACK_URL;
+
+  if (
+    NETWORK === "localnet" ||
+    !fallback ||
+    normalizeRpcUrl(fallback) === normalizeRpcUrl(RPC_URL)
+  ) {
+    return primary;
+  }
+
+  try {
+    await primary.getLatestBlockhash(RPC_COMMITMENT);
+    return primary;
+  } catch (primaryErr) {
+    const fallbackConn = new anchor.web3.Connection(fallback, RPC_COMMITMENT);
+    try {
+      await fallbackConn.getLatestBlockhash(RPC_COMMITMENT);
+      return fallbackConn;
+    } catch (fallbackErr) {
+      throw new Error(
+        `RPC unavailable: primary(${RPC_URL})=${errMessage(
+          primaryErr
+        )}; fallback(${fallback})=${errMessage(fallbackErr)}`
+      );
+    }
+  }
+}
 
 export function loadKeypair(filePath: string): Keypair {
   const raw = fs.readFileSync(filePath, "utf8");
@@ -23,28 +70,28 @@ export function loadKeypair(filePath: string): Keypair {
 }
 
 export function getLocalProvider(): anchor.AnchorProvider {
-  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
+  const connection = new anchor.web3.Connection(RPC_URL, RPC_COMMITMENT);
   const keypair = loadKeypair(WALLET_PATH);
   const wallet = new anchor.Wallet(keypair);
   return new anchor.AnchorProvider(connection, wallet, {
-    commitment: "confirmed",
+    commitment: RPC_COMMITMENT,
   });
 }
 
 export async function getProvider(): Promise<anchor.AnchorProvider> {
-  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
+  const connection = await resolveConnection();
 
   if (WALLET_TYPE === "privy") {
     const privyWallet = await getPrivyWalletInstance();
     return new PrivyAnchorProvider(connection, privyWallet, {
-      commitment: "confirmed",
+      commitment: RPC_COMMITMENT,
     });
   }
 
   const keypair = loadKeypair(WALLET_PATH);
   const wallet = new anchor.Wallet(keypair);
   return new anchor.AnchorProvider(connection, wallet, {
-    commitment: "confirmed",
+    commitment: RPC_COMMITMENT,
   });
 }
 

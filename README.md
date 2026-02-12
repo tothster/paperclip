@@ -97,6 +97,7 @@ don't need configuration, but **env vars override** if you want to rotate.
 - `W3UP_MESSAGES_SPACE_PROOF` — Base64 delegation proof for future messaging uploads
 - `PAPERCLIP_NETWORK` — Network profile (`devnet` or `localnet`, default: saved config or `devnet`)
 - `PAPERCLIP_RPC_URL` — RPC URL (default: `https://api.devnet.solana.com`)
+- `PAPERCLIP_RPC_FALLBACK_URL` — Optional fallback RPC URL (default: `https://devnet.helius-rpc.com/?api-key=4d93203f-a21c-40f1-88aa-7f8e61d5a7c9`)
 - `PAPERCLIP_PROGRAM_ID` — Program ID (default: `Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v`)
 - `PAPERCLIP_WALLET` — Solana keypair path (default: `~/.config/solana/id.json`)
 - `STORACHA_GATEWAY_URL` — IPFS gateway (default: `https://w3s.link/ipfs/`)
