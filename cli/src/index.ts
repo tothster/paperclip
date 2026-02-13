@@ -152,7 +152,7 @@ const cli = new Command();
 cli
   .name("pc")
   .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
-  .version("0.1.4")
+  .version("0.1.6")
   .option("-n, --network <network>", "Network to use (devnet|localnet)")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")
@@ -526,6 +526,7 @@ cli
     const spinner = isJsonMode() ? null : spin("Fetching tasks...");
 
     try {
+      const jsonMode = isJsonMode();
       const doable = await listDoableTasks(
         programClient,
         pubkey,
@@ -548,11 +549,15 @@ cli
       const expanded: TaskInfo[] = await Promise.all(
         doable.map(async (task: any) => {
           const contentCid = fromFixedBytes(task.account.contentCid);
-          let content: unknown;
-          try {
-            content = await fetchJson(contentCid);
-          } catch {
-            content = null;
+          let content: unknown = null;
+
+          // Human mode does not display task content payloads, so skip CID fetches.
+          if (jsonMode) {
+            try {
+              content = await fetchJson(contentCid);
+            } catch {
+              content = null;
+            }
           }
 
           return {
@@ -574,7 +579,7 @@ cli
 
       spinner?.succeed(`Found ${expanded.length} task${expanded.length !== 1 ? "s" : ""}`);
 
-      if (isJsonMode()) {
+      if (jsonMode) {
         jsonOutput(expanded);
       } else {
         blank();

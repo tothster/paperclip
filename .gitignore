@@ -10,3 +10,4 @@ cli/baked-config.json
 test-ledger
 .yarn
 storacha-ucans/
+.env

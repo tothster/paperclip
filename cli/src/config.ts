@@ -80,10 +80,10 @@ function networkFromArgv(argv: string[]): PaperclipNetwork | undefined {
 
 const baked = readBakedConfig();
 
-const DEVNET_RPC_URL = "https://api.devnet.solana.com";
+const DEVNET_RPC_URL = "https://devnet.helius-rpc.com/?api-key=4d93203f-a21c-40f1-88aa-7f8e61d5a7c9";
 const LOCALNET_RPC_URL = "http://127.0.0.1:8899";
 const DEFAULT_RPC_FALLBACK_URL =
-  "https://devnet.helius-rpc.com/?api-key=4d93203f-a21c-40f1-88aa-7f8e61d5a7c9";
+  "https://api.devnet.solana.com";
 const DEVNET_PROGRAM_ID = "Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v";
 const LOCALNET_PROGRAM_ID = "Fehg9nbFCRnrZAuaW6tiqnegbHpHgizV9bvakhAWix6v";
 

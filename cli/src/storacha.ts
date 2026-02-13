@@ -17,6 +17,7 @@ import fs from "fs";
 import crypto from "crypto";
 
 export type StorachaScope = "data" | "tasks" | "messages";
+const FETCH_TIMEOUT_MS = 7000;
 
 /**
  * Create a Storacha client with the correct principal key.
@@ -123,7 +124,11 @@ export async function fetchJson(cid: string): Promise<unknown> {
 
   const base = normalizeGateway(STORACHA_GATEWAY_URL);
   const url = `${base}${cid}`;
-  const res = await fetch(url);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const res = await fetch(url, { signal: controller.signal }).finally(() =>
+    clearTimeout(timer)
+  );
   if (!res.ok) {
     throw new Error(`Failed to fetch CID ${cid}: ${res.status}`);
   }
