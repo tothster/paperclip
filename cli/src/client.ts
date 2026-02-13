@@ -53,14 +53,10 @@ export async function getProgram(): Promise<anchor.Program<anchor.Idl>> {
   const provider = await getProvider();
   anchor.setProvider(provider);
 
-  const idlPath = path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "target",
-    "idl",
-    "paperclip_protocol.json"
-  );
+  // Try npm package location first, fall back to local dev path
+  const npmIdlPath = path.resolve(__dirname, "..", "idl", "paperclip_protocol.json");
+  const devIdlPath = path.resolve(__dirname, "..", "..", "target", "idl", "paperclip_protocol.json");
+  const idlPath = fs.existsSync(npmIdlPath) ? npmIdlPath : devIdlPath;
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8")) as anchor.Idl;
   // Override address with env-configurable PROGRAM_ID
   (idl as any).address = PROGRAM_ID.toBase58();
