@@ -11,6 +11,8 @@ Tracks which features are implemented on each chain. **Both columns must be ✅ 
 | `createTask`              | ✅              | ✅               | ✅               |
 | `submitProof`             | ✅              | ✅               | ✅               |
 | `deactivateTask`          | ✅              | ✅               | ✅               |
+| Privy gas sponsorship     | ✅              | ✅               | ✅               |
+| CLI `--server` support    | ✅              | ✅               | ✅               |
 
 ## How to keep this in sync
 

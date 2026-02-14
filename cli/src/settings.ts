@@ -22,6 +22,8 @@ export interface PaperclipSettings {
   server?: string; // e.g. "solana-devnet", "monad-testnet"
   privyWalletId?: string;
   privyWalletAddress?: string;
+  privyEvmWalletId?: string;
+  privyEvmWalletAddress?: string;
 }
 
 // =============================================================================

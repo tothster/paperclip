@@ -29,7 +29,7 @@ const DUMMY_RECENT_BLOCKHASH = "11111111111111111111111111111111";
 // HTTP helpers
 // ---------------------------------------------------------------------------
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   const encoded = Buffer.from(`${PRIVY_APP_ID}:${PRIVY_APP_SECRET}`).toString(
     "base64"
   );
@@ -40,7 +40,7 @@ function authHeaders(): Record<string, string> {
   };
 }
 
-async function privyFetch(path: string, init: RequestInit = {}): Promise<any> {
+export async function privyFetch(path: string, init: RequestInit = {}): Promise<any> {
   const url = `${PRIVY_API_BASE}${path}`;
   const headers = {
     ...authHeaders(),

@@ -2,9 +2,20 @@
  * EVM Adapter
  *
  * ethers.js-based implementation of ChainAdapter for EVM chains (Monad).
+ *
+ * Supports two wallet modes:
+ *   - local:  ethers.Wallet with private key from env var (default for localnet)
+ *   - privy:  Privy server wallet with gas sponsorship (for testnet/mainnet)
  */
 
 import { ethers } from "ethers";
+import { WALLET_TYPE } from "./config.js";
+import {
+  provisionPrivyEvmWallet,
+  getPersistedEvmWallet,
+  sendSponsoredEvmTransaction,
+  type EvmTransactionRequest,
+} from "./privy-evm.js";
 import type {
   ChainAdapter,
   AgentData,
@@ -54,33 +65,45 @@ export class EVMAdapter implements ChainAdapter {
   private config: ServerConfig;
   private provider: ethers.JsonRpcProvider;
   private signer: ethers.Wallet | null = null;
-  private contract: ethers.Contract | null = null;
+  private readContract: ethers.Contract | null = null;
+  private iface: ethers.Interface;
+  private isPrivyMode: boolean;
 
   constructor(config: ServerConfig) {
     this.config = config;
     this.serverName = config.name;
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
+    this.iface = new ethers.Interface(PAPERCLIP_ABI);
+    // Privy mode is only for non-localnet servers
+    this.isPrivyMode = WALLET_TYPE === "privy" && config.name !== "evm-localnet";
   }
 
-  private getContract(): ethers.Contract {
-    if (!this.contract) {
-      if (!this.config.contractAddress) {
-        throw new Error(
-          `No contract address configured for server "${this.serverName}". ` +
-          `Set PAPERCLIP_EVM_CONTRACT_ADDRESS env var or update server config.`
-        );
-      }
-      const signer = this.getSigner();
-      this.contract = new ethers.Contract(
+  // =========================================================================
+  // Contract access — read-only for Privy mode, full signer for local mode
+  // =========================================================================
+
+  private getReadContract(): ethers.Contract {
+    if (!this.readContract) {
+      this.ensureContractAddress();
+      this.readContract = new ethers.Contract(
         this.config.contractAddress,
         PAPERCLIP_ABI,
-        signer
+        this.isPrivyMode ? this.provider : this.getLocalSigner()
       );
     }
-    return this.contract;
+    return this.readContract;
   }
 
-  private getSigner(): ethers.Wallet {
+  private ensureContractAddress(): void {
+    if (!this.config.contractAddress) {
+      throw new Error(
+        `No contract address configured for server "${this.serverName}". ` +
+        `Set PAPERCLIP_EVM_CONTRACT_ADDRESS env var or update server config.`
+      );
+    }
+  }
+
+  private getLocalSigner(): ethers.Wallet {
     if (!this.signer) {
       const privateKey =
         process.env.PAPERCLIP_EVM_PRIVATE_KEY || process.env.EVM_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
@@ -94,12 +117,30 @@ export class EVMAdapter implements ChainAdapter {
     return this.signer;
   }
 
+  // =========================================================================
+  // Wallet address
+  // =========================================================================
+
   async getWalletAddress(): Promise<string> {
-    return this.getSigner().address;
+    if (this.isPrivyMode) {
+      try {
+        const wallet = getPersistedEvmWallet();
+        return wallet.address;
+      } catch {
+        // No wallet provisioned yet — return zero address so read-only
+        // commands (tasks, status) can proceed and show "not registered"
+        return ZERO_ADDRESS;
+      }
+    }
+    return this.getLocalSigner().address;
   }
 
+  // =========================================================================
+  // Protocol reads (always free — no gas, no Privy needed)
+  // =========================================================================
+
   async getAgent(wallet: string): Promise<AgentData | null> {
-    const contract = this.getContract();
+    const contract = this.getReadContract();
     const agent = await contract.getAgent(wallet);
     if (!agent.exists) return null;
 
@@ -118,7 +159,7 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async getTask(taskId: number): Promise<TaskData | null> {
-    const contract = this.getContract();
+    const contract = this.getReadContract();
     const task = await contract.getTask(taskId);
     if (!task.exists) return null;
 
@@ -126,7 +167,7 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async getClaim(taskId: number, agent: string): Promise<ClaimData | null> {
-    const contract = this.getContract();
+    const contract = this.getReadContract();
     const claim = await contract.getClaim(taskId, agent);
     if (!claim.exists) return null;
 
@@ -141,7 +182,7 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async getInvite(inviter: string): Promise<InviteData | null> {
-    const contract = this.getContract();
+    const contract = this.getReadContract();
     const invite = await contract.getInvite(inviter);
     if (!invite.exists) return null;
 
@@ -156,7 +197,7 @@ export class EVMAdapter implements ChainAdapter {
 
   async listActiveTasks(): Promise<TaskData[]> {
     // Use totalTasks() to iterate through all tasks by ID
-    const contract = this.getContract();
+    const contract = this.getReadContract();
     const totalTasks = Number(await contract.totalTasks());
 
     const tasks: TaskData[] = [];
@@ -177,8 +218,7 @@ export class EVMAdapter implements ChainAdapter {
     const tierEligible = allActive.filter((t) => agentTier >= t.minTier);
     if (tierEligible.length === 0) return [];
 
-    // Check claims and prerequisites in parallel
-    const contract = this.getContract();
+    // Check claims and prerequisites
     const doable: TaskData[] = [];
 
     for (const task of tierEligible) {
@@ -198,10 +238,12 @@ export class EVMAdapter implements ChainAdapter {
     return doable;
   }
 
+  // =========================================================================
+  // Mutations — route through Privy or local signer
+  // =========================================================================
+
   async registerAgent(): Promise<{ wallet: string; clipsBalance: number; invitedBy: string | null }> {
-    const contract = this.getContract();
-    const tx = await contract.registerAgent();
-    await tx.wait();
+    await this.sendMutation("registerAgent", []);
 
     const wallet = await this.getWalletAddress();
     const agent = await this.getAgent(wallet);
@@ -213,10 +255,8 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async registerAgentWithInvite(inviteCode: string): Promise<{ wallet: string; clipsBalance: number; invitedBy: string | null }> {
-    const contract = this.getContract();
     // On EVM, the invite code is the inviter's address
-    const tx = await contract.registerAgentWithInvite(inviteCode);
-    await tx.wait();
+    await this.sendMutation("registerAgentWithInvite", [inviteCode]);
 
     const wallet = await this.getWalletAddress();
     const agent = await this.getAgent(wallet);
@@ -239,9 +279,7 @@ export class EVMAdapter implements ChainAdapter {
       };
     }
 
-    const contract = this.getContract();
-    const tx = await contract.createInvite();
-    await tx.wait();
+    await this.sendMutation("createInvite", []);
 
     const invite = await this.getInvite(wallet);
     return {
@@ -251,19 +289,66 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async submitProof(taskId: number, proofCid: string): Promise<{ clipsAwarded: number }> {
-    const contract = this.getContract();
     const task = await this.getTask(taskId);
     if (!task) throw new Error(`Task ${taskId} not found`);
 
-    const tx = await contract.submitProof(taskId, proofCid);
-    await tx.wait();
+    await this.sendMutation("submitProof", [taskId, proofCid]);
 
     return { clipsAwarded: task.rewardClips };
   }
 
   // =========================================================================
+  // Privy wallet provisioning
+  // =========================================================================
+
+  async provisionWallet(): Promise<void> {
+    if (this.isPrivyMode) {
+      await provisionPrivyEvmWallet();
+    }
+  }
+
+  // =========================================================================
   // Private helpers
   // =========================================================================
+
+  /**
+   * Central mutation dispatcher.
+   * - In Privy mode: encode calldata, send via Privy REST API with gas sponsorship
+   * - In local mode: send directly via ethers.js signer
+   */
+  private async sendMutation(functionName: string, args: any[]): Promise<string> {
+    if (this.isPrivyMode) {
+      return this.sendViaPrivy(functionName, args);
+    }
+    return this.sendViaLocal(functionName, args);
+  }
+
+  private async sendViaPrivy(functionName: string, args: any[]): Promise<string> {
+    this.ensureContractAddress();
+    const wallet = getPersistedEvmWallet();
+    const data = this.iface.encodeFunctionData(functionName, args);
+
+    const hash = await sendSponsoredEvmTransaction(
+      wallet.id,
+      this.config.chainId!,
+      { to: this.config.contractAddress, data }
+    );
+
+    // Wait for confirmation
+    const receipt = await this.provider.waitForTransaction(hash, 1, 60_000);
+    if (!receipt || receipt.status === 0) {
+      throw new Error(`Transaction ${hash} failed on-chain`);
+    }
+
+    return hash;
+  }
+
+  private async sendViaLocal(functionName: string, args: any[]): Promise<string> {
+    const contract = this.getReadContract();
+    const tx = await contract[functionName](...args);
+    const receipt = await tx.wait();
+    return receipt.hash;
+  }
 
   private mapTask(task: any): TaskData {
     const reqTaskId = Number(task.requiredTaskId);

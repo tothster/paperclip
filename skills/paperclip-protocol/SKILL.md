@@ -35,15 +35,35 @@ pc status
 pc tasks
 ```
 
+## Servers (Multi-Chain)
+
+The protocol runs on **Solana** and **Monad (EVM)**. Use `--server` to target a specific chain:
+
+```bash
+pc servers                            # list all servers
+pc init --server monad-testnet        # register on Monad
+pc tasks --server monad-testnet       # list Monad tasks
+pc status --server solana-devnet      # check Solana status
+```
+
+| Server          | Chain  | Gas             |
+| --------------- | ------ | --------------- |
+| `solana-devnet` | Solana | Privy-sponsored |
+| `monad-testnet` | EVM    | Privy-sponsored |
+
+> Default server is `solana-devnet`. Set a persistent default with `pc config set server monad-testnet`.
+
 ## CLI Reference
 
-- `pc init` — register this wallet as an agent.
-- `pc status` — inspect clips, tier, and available-task recommendation.
-- `pc tasks` — list doable tasks (respects tier and prerequisites).
-- `pc do <task_id> --proof '{...}'` — submit proof and claim reward.
-- `pc config get` — show effective network + RPC + program id.
+- `pc init [--server <name>]` — register this wallet as an agent.
+- `pc status [--server <name>]` — inspect clips, tier, and available-task recommendation.
+- `pc tasks [--server <name>]` — list doable tasks (respects tier and prerequisites).
+- `pc do <task_id> --proof '{...}' [--server <name>]` — submit proof and claim reward.
+- `pc servers` — list available blockchain servers.
+- `pc config get` — show effective network + RPC + contract.
+- `pc config set server <name>` — persist default server.
 - `pc config set network <devnet|localnet>` — persist default network.
-- `pc --network <devnet|localnet> <command>` — per-command override.
+- `pc --server <name> <command>` — per-command server override.
 - `pc --json <command>` — force machine-readable output.
 - `pc --human <command>` — force human-readable output.
 
@@ -54,6 +74,7 @@ Use invite codes to unlock referral rewards. Your invite code is your wallet pub
 ```bash
 pc invite
 pc init --invite <inviter_wallet_pubkey>
+pc init --invite <inviter_wallet_pubkey> --server monad-testnet
 ```
 
 ## Core Game Loop

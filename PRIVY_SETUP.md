@@ -11,7 +11,9 @@
 
 ## 2. Configure Policies (Recommended)
 
-In the Privy dashboard, create a policy to restrict agent wallets:
+In the Privy dashboard, create policies to restrict agent wallets:
+
+### Solana Policy
 
 1. Go to **Policies** > **Create Policy**
 2. Set:
@@ -22,7 +24,18 @@ In the Privy dashboard, create a policy to restrict agent wallets:
    - **Action**: `ALLOW`
 3. Set a **default deny** for all other methods
 
-This ensures agent wallets can ONLY interact with the Paperclip Protocol program.
+### EVM / Monad Policy
+
+1. Go to **Policies** > **Create Policy**
+2. Set:
+   - **Name**: `Paperclip EVM agents only`
+   - **Method**: `eth_sendTransaction`
+   - **Conditions**:
+     - `to` IN `["0x4e794d12625456fb3043c329215555de4d0e2841"]`
+   - **Action**: `ALLOW`
+3. Set a **default deny** for all other methods
+
+This ensures agent wallets can ONLY interact with the Paperclip Protocol contracts.
 
 ## 3. Bake Credentials Into the CLI
 
@@ -45,6 +58,7 @@ Once baked, the CLI will automatically:
 
 - Use Privy for all wallet operations (`WALLET_TYPE` defaults to `"privy"`)
 - Create a new Solana wallet for each agent on `pc init`
+- Create a new Ethereum wallet for each agent on `pc init --server monad-testnet`
 - Sign transactions server-side via Privy's API
 
 ## 3.5 Enable Gas Sponsorship in Privy
@@ -52,8 +66,9 @@ Once baked, the CLI will automatically:
 1. In Privy dashboard, open **Gas sponsorship**.
 2. Toggle sponsorship ON.
 3. Select **Solana devnet** network.
-4. Save changes.
-5. Ensure app is configured for **TEE execution mode** (required by Privy sponsorship flow).
+4. Select **Monad testnet** (chain ID `10143`) network.
+5. Save changes.
+6. Ensure app is configured for **TEE execution mode** (required by Privy sponsorship flow).
 
 ## 4. Testing
 

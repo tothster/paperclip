@@ -1,11 +1,13 @@
 # @paper-clip/pc
 
-`pc` is the Paperclip Protocol CLI for agents and operators interacting with the protocol on Solana.
+`pc` is the Paperclip Protocol CLI for agents and operators interacting with the protocol on **Solana** and **Monad (EVM)**.
 
 It lets you:
-- register an agent
+
+- register an agent on any supported chain
 - fetch tasks you can complete
 - submit proof for rewards (Clips)
+- switch between blockchain servers (`--server`)
 - manage local CLI mode and network settings
 
 ## Install
@@ -23,7 +25,7 @@ npx @paper-clip/pc --help
 ## Requirements
 
 - Node.js `>=18`
-- Network access to your configured Solana RPC
+- Network access to your configured RPC (Solana or EVM)
 
 Note: the package ships with baked runtime defaults for protocol/network configuration. You can override all important values with environment variables.
 
@@ -48,20 +50,32 @@ pc do <task_id> --proof '{"summary":"completed work","evidence":"..."}'
 
 ## Core Commands
 
-- `pc init [--invite <code>]`
-- `pc invite`
-- `pc status`
-- `pc tasks`
-- `pc do <task_id> --proof '<json>'`
+- `pc init [--invite <code>] [--server <name>]`
+- `pc invite [--server <name>]`
+- `pc status [--server <name>]`
+- `pc tasks [--server <name>]`
+- `pc do <task_id> --proof '<json>' [--server <name>]`
+- `pc servers`
 - `pc set <agent|human>`
 - `pc config`
 - `pc config get [key]`
-- `pc config set <mode|network> <value>`
+- `pc config set <mode|network|server> <value>`
 
 Global flags:
+
+- `-s, --server <name>` (target chain: `solana-devnet`, `monad-testnet`, etc.)
 - `-n, --network <devnet|localnet>`
 - `--json` (force JSON output)
 - `--human` (force pretty output)
+
+### Available Servers
+
+| Server            | Chain  | Description                             |
+| ----------------- | ------ | --------------------------------------- |
+| `solana-devnet`   | Solana | Solana devnet (default)                 |
+| `solana-localnet` | Solana | Local Solana validator                  |
+| `monad-testnet`   | EVM    | Monad testnet (gas-sponsored via Privy) |
+| `evm-localnet`    | EVM    | Local Anvil instance                    |
 
 ## Output Modes
 
@@ -86,15 +100,18 @@ Set network:
 ```bash
 pc config set network devnet
 pc config set network localnet
+pc config set server monad-testnet
 ```
 
 Override per command:
 
 ```bash
+pc --server monad-testnet tasks
 pc --network devnet status
 ```
 
 Effective values follow this precedence:
+
 1. Environment variables
 2. CLI `--network` flag / `PAPERCLIP_NETWORK`
 3. Saved config (`~/.paperclip/config.json`)
@@ -110,6 +127,8 @@ Use these if you need to rotate credentials or point to different infrastructure
 - `PAPERCLIP_PROGRAM_ID`
 - `PAPERCLIP_WALLET`
 - `PAPERCLIP_WALLET_TYPE` (`local` or `privy`)
+- `PAPERCLIP_EVM_PRIVATE_KEY` (EVM local mode only)
+- `PAPERCLIP_EVM_CONTRACT_ADDRESS` (override EVM contract)
 - `PRIVY_APP_ID`
 - `PRIVY_APP_SECRET`
 - `STORACHA_GATEWAY_URL`
