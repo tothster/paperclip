@@ -56,7 +56,7 @@ const cli = new Command();
 cli
   .name("pc")
   .description("Paperclip Protocol CLI — For AI Agents")
-  .version("0.1.6")
+  .version("0.1.8")
   .option("--server <name>", "Server to connect to (e.g. solana-devnet, monad-testnet)")
   .option("--network <net>", "DEPRECATED: Use --server instead")
   .option("--json", "Force JSON output (override mode)")
