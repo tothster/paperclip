@@ -2,146 +2,50 @@
  * Paperclip Protocol CLI
  *
  * Human-friendly command-line interface for AI agents
- * interacting with the Paperclip Protocol on Solana.
+ * interacting with the Paperclip Protocol on Solana and EVM chains.
  */
 
 import { Command } from "commander";
-import * as anchor from "@coral-xyz/anchor";
-import bs58 from "bs58";
-import {
-  fromFixedBytes,
-  getAgentPda,
-  getClaimPda,
-  getInvitePda,
-  getProgram,
-  getProtocolPda,
-  getTaskPda,
-  toFixedBytes,
-} from "./client.js";
 import { fetchJson, uploadJson } from "./storacha.js";
 import { banner, blank, fail, heading, info, parseError, spin, success, table, warn } from "./ui.js";
 import {
   getMode,
   getNetwork,
+  getServer,
   setMode,
   setNetwork,
+  setServer,
   configPath,
   type CliMode,
   type PaperclipNetwork,
 } from "./settings.js";
 import {
   NETWORK,
-  PROGRAM_ID,
-  RPC_FALLBACK_URL,
-  RPC_URL,
   WALLET_TYPE,
 } from "./config.js";
 import { provisionPrivyWallet } from "./privy.js";
-import type { AgentState, TaskInfo } from "./types.js";
-
-const TASK_IS_ACTIVE_OFFSET = 154;
-const NO_PREREQ_TASK_ID = 0xffffffff;
+import type { TaskInfo } from "./types.js";
+import {
+  type ChainAdapter,
+  type TaskData,
+  getServerConfig,
+  listServers,
+  BUILTIN_SERVERS,
+} from "./chain-adapter.js";
+import { SolanaAdapter } from "./solana-adapter.js";
+import { EVMAdapter } from "./evm-adapter.js";
 
 // =============================================================================
 // HELPERS
 // =============================================================================
 
-type ProgramClient = anchor.Program<anchor.Idl>;
-
 function jsonOutput(data: unknown) {
   process.stdout.write(`${JSON.stringify(data, null, 2)}\n`);
 }
 
-function shortPubkey(key: string): string {
+function shortKey(key: string): string {
   if (key.length <= 12) return key;
   return `${key.slice(0, 6)}...${key.slice(-4)}`;
-}
-
-function asPubkey(value: any): anchor.web3.PublicKey {
-  return value instanceof anchor.web3.PublicKey
-    ? value
-    : new anchor.web3.PublicKey(value);
-}
-
-function isZeroPubkey(value: any): boolean {
-  return asPubkey(value).toBuffer().equals(Buffer.alloc(32));
-}
-
-async function getAgentAccount(
-  program: ProgramClient,
-  agentPubkey: anchor.web3.PublicKey
-) {
-  const agentPda = getAgentPda(program.programId, agentPubkey);
-  try {
-    return await (program.account as any).agentAccount.fetch(agentPda);
-  } catch {
-    return null;
-  }
-}
-
-async function listActiveTasks(program: ProgramClient): Promise<any[]> {
-  const activeFilter = {
-    memcmp: {
-      offset: TASK_IS_ACTIVE_OFFSET,
-      bytes: bs58.encode(Buffer.from([1])),
-    },
-  };
-
-  const tasks = await (program.account as any).taskRecord.all([activeFilter]);
-  return tasks.filter(
-    (task: any) => task.account.currentClaims < task.account.maxClaims
-  );
-}
-
-async function listDoableTasks(
-  program: ProgramClient,
-  agentPubkey: anchor.web3.PublicKey,
-  agentTier: number
-): Promise<any[]> {
-  const tasks = await listActiveTasks(program);
-  if (tasks.length === 0) {
-    return [];
-  }
-
-  const tierEligible = tasks.filter(
-    (task: any) => agentTier >= task.account.minTier
-  );
-  if (tierEligible.length === 0) {
-    return [];
-  }
-
-  const connection = program.provider.connection;
-  const claimPdas = tierEligible.map((task) =>
-    getClaimPda(program.programId, task.account.taskId, agentPubkey)
-  );
-  const claimInfos = await connection.getMultipleAccountsInfo(claimPdas);
-
-  const unclaimed = tierEligible.filter((_task: any, idx: number) => !claimInfos[idx]);
-  const gated = unclaimed.filter(
-    (task: any) => task.account.requiredTaskId !== NO_PREREQ_TASK_ID
-  );
-  if (gated.length === 0) {
-    return unclaimed;
-  }
-
-  const prerequisitePdas = gated.map((task: any) =>
-    getClaimPda(program.programId, task.account.requiredTaskId, agentPubkey)
-  );
-  const prerequisiteInfos = await connection.getMultipleAccountsInfo(
-    prerequisitePdas
-  );
-  const isGatedTaskDoable = new Set<number>();
-  gated.forEach((task: any, idx: number) => {
-    if (prerequisiteInfos[idx]) {
-      isGatedTaskDoable.add(task.account.taskId);
-    }
-  });
-
-  return unclaimed.filter(
-    (task: any) =>
-      task.account.requiredTaskId === NO_PREREQ_TASK_ID ||
-      isGatedTaskDoable.has(task.account.taskId)
-  );
 }
 
 // =============================================================================
@@ -151,26 +55,24 @@ async function listDoableTasks(
 const cli = new Command();
 cli
   .name("pc")
-  .description("Paperclip Protocol CLI — earn 📎 Clips by completing tasks")
+  .description("Paperclip Protocol CLI — For AI Agents")
   .version("0.1.6")
-  .option("-n, --network <network>", "Network to use (devnet|localnet)")
+  .option("--server <name>", "Server to connect to (e.g. solana-devnet, monad-testnet)")
+  .option("--network <net>", "DEPRECATED: Use --server instead")
   .option("--json", "Force JSON output (override mode)")
   .option("--human", "Force human output (override mode)")
   .option("--mock-storacha", "Use mock Storacha uploads (test only)");
 
 function normalizeNetwork(value: string): PaperclipNetwork | null {
-  const normalized = value.toLowerCase().trim();
-  if (normalized === "devnet" || normalized === "localnet") {
-    return normalized;
-  }
+  const lower = value.toLowerCase().trim();
+  if (lower === "devnet" || lower === "localnet") return lower;
   return null;
 }
 
 function isJsonMode(): boolean {
-  // Explicit flags override saved config
-  if (cli.opts().json === true) return true;
-  if (cli.opts().human === true) return false;
-  // Otherwise use saved mode: agent=JSON, human=pretty
+  const opts = cli.opts();
+  if (opts.json) return true;
+  if (opts.human) return false;
   return getMode() === "agent";
 }
 
@@ -181,21 +83,99 @@ function applyMockFlag() {
 }
 
 function validateNetworkFlag(): void {
-  const requested = cli.opts().network;
-  if (!requested) return;
-  if (normalizeNetwork(requested) !== null) return;
-
-  if (isJsonMode()) {
-    jsonOutput({ ok: false, error: 'Network must be "devnet" or "localnet"' });
-  } else {
-    fail('Network must be "devnet" or "localnet"');
+  const raw = cli.opts().network as string | undefined;
+  if (!raw) return;
+  const net = normalizeNetwork(raw);
+  if (!net) {
+    if (isJsonMode()) {
+      jsonOutput({ ok: false, error: `Invalid network: "${raw}". Use "devnet" or "localnet"` });
+    } else {
+      fail(`Invalid network: "${raw}". Use "devnet" or "localnet"`);
+    }
+    process.exit(1);
   }
-  process.exit(1);
 }
 
 cli.hook("preAction", () => {
   validateNetworkFlag();
 });
+
+// =============================================================================
+// ADAPTER FACTORY
+// =============================================================================
+
+function resolveServerName(): string {
+  // Priority: --server flag > env var > saved config > network-based default
+  const flagServer = cli.opts().server as string | undefined;
+  if (flagServer) return flagServer;
+
+  const envServer = process.env.PAPERCLIP_SERVER;
+  if (envServer) return envServer;
+
+  const savedServer = getServer();
+  if (savedServer) return savedServer;
+
+  // Fall back to network-based server (backward compat)
+  return NETWORK === "localnet" ? "solana-localnet" : "solana-devnet";
+}
+
+function createAdapter(): ChainAdapter {
+  const serverName = resolveServerName();
+  const config = getServerConfig(serverName);
+
+  if (!config) {
+    const available = listServers().map((s) => s.name).join(", ");
+    throw new Error(`Unknown server "${serverName}". Available: ${available}`);
+  }
+
+  // Allow env overrides for contract address
+  const overriddenConfig = { ...config };
+  if (config.chain === "evm") {
+    const envContract = process.env.PAPERCLIP_EVM_CONTRACT_ADDRESS;
+    if (envContract) overriddenConfig.contractAddress = envContract;
+  }
+
+  if (config.chain === "solana") {
+    return new SolanaAdapter(overriddenConfig);
+  } else {
+    return new EVMAdapter(overriddenConfig);
+  }
+}
+
+// =============================================================================
+// SERVERS COMMAND
+// =============================================================================
+
+cli
+  .command("servers")
+  .description("List available servers")
+  .action(() => {
+    const currentServer = resolveServerName();
+
+    if (isJsonMode()) {
+      jsonOutput({
+        servers: BUILTIN_SERVERS.map((s) => ({
+          name: s.name,
+          chain: s.chain,
+          label: s.label,
+          rpcUrl: s.rpcUrl,
+          active: s.name === currentServer,
+        })),
+        current: currentServer,
+      });
+    } else {
+      banner();
+      heading("Available Servers");
+      blank();
+      for (const s of BUILTIN_SERVERS) {
+        const marker = s.name === currentServer ? "  ✅ " : "     ";
+        info(marker, `${s.name} — ${s.label} (${s.chain})`);
+      }
+      blank();
+      info("💡", "Switch with: pc config set server <name>");
+      blank();
+    }
+  });
 
 // =============================================================================
 // INIT COMMAND
@@ -204,15 +184,17 @@ cli.hook("preAction", () => {
 cli
   .command("init")
   .description("Register as an agent on the protocol")
-  .option("--invite <code>", "Invite code (inviter wallet pubkey)")
+  .option("--invite <code>", "Invite code (inviter wallet pubkey or address)")
   .action(async (opts: { invite?: string }) => {
     applyMockFlag();
 
+    const adapter = createAdapter();
+
     // If using Privy, auto-provision wallet on first init
-    if (WALLET_TYPE === "privy") {
+    if (WALLET_TYPE === "privy" && adapter.provisionWallet) {
       const spinnerProvision = isJsonMode() ? null : spin("Provisioning server wallet...");
       try {
-        await provisionPrivyWallet();
+        await adapter.provisionWallet();
         spinnerProvision?.succeed("Server wallet ready");
       } catch (err) {
         spinnerProvision?.fail("Failed to provision wallet");
@@ -226,30 +208,28 @@ cli
       }
     }
 
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
+    const walletAddr = await adapter.getWalletAddress();
 
     if (!isJsonMode()) {
       banner();
-      info("👤 Wallet:", pubkey.toBase58());
+      info("👤 Wallet:", walletAddr);
+      info("🔗 Server:", resolveServerName());
       blank();
     }
 
     // Check if already registered
-    const existing = await getAgentAccount(programClient, pubkey);
+    const existing = await adapter.getAgent(walletAddr);
     if (existing) {
       if (isJsonMode()) {
         jsonOutput({
           ok: true,
           already_registered: true,
-          agent_pubkey: pubkey.toBase58(),
-          clips_balance: existing.clipsBalance.toNumber(),
+          agent_wallet: walletAddr,
+          clips_balance: existing.clipsBalance,
         });
       } else {
         success("Already registered!");
-        info("📎 Clips:", existing.clipsBalance.toNumber());
+        info("📎 Clips:", existing.clipsBalance);
         info("⭐ Tier:", existing.efficiencyTier);
         info("✅ Tasks completed:", existing.tasksCompleted);
         blank();
@@ -260,66 +240,26 @@ cli
     // Register
     const spinner = isJsonMode() ? null : spin("Registering agent...");
     try {
-      const protocolPda = getProtocolPda(programClient.programId);
-      const agentPda = getAgentPda(programClient.programId, pubkey);
-
+      let result: { wallet: string; clipsBalance: number; invitedBy: string | null };
       if (opts.invite) {
-        let inviterPubkey: anchor.web3.PublicKey;
-        try {
-          inviterPubkey = new anchor.web3.PublicKey(opts.invite);
-        } catch {
-          throw new Error("Invalid invite code format (expected base58 pubkey)");
-        }
-        if (inviterPubkey.equals(pubkey)) {
-          throw new Error("Self-referral is not allowed");
-        }
-
-        const inviterAgentPda = getAgentPda(programClient.programId, inviterPubkey);
-        const invitePda = getInvitePda(programClient.programId, inviterPubkey);
-        const inviteCode = Array.from(inviterPubkey.toBuffer());
-
-        await programClient.methods
-          .registerAgentWithInvite(inviteCode)
-          .accounts({
-            protocol: protocolPda,
-            agentAccount: agentPda,
-            inviterAgent: inviterAgentPda,
-            inviteRecord: invitePda,
-            agent: pubkey,
-            systemProgram: anchor.web3.SystemProgram.programId,
-          })
-          .rpc();
+        result = await adapter.registerAgentWithInvite(opts.invite);
       } else {
-        await programClient.methods
-          .registerAgent()
-          .accounts({
-            protocol: protocolPda,
-            agentAccount: agentPda,
-            agent: pubkey,
-            systemProgram: anchor.web3.SystemProgram.programId,
-          })
-          .rpc();
+        result = await adapter.registerAgent();
       }
-
-      const agent = await (programClient.account as any).agentAccount.fetch(
-        agentPda
-      );
 
       spinner?.succeed("Agent registered!");
 
       if (isJsonMode()) {
         jsonOutput({
           ok: true,
-          agent_pubkey: pubkey.toBase58(),
-          clips_balance: agent.clipsBalance.toNumber(),
-          invited_by: agent.invitedBy && !isZeroPubkey(agent.invitedBy)
-            ? asPubkey(agent.invitedBy).toBase58()
-            : null,
+          agent_wallet: result.wallet,
+          clips_balance: result.clipsBalance,
+          invited_by: result.invitedBy,
         });
       } else {
-        info("📎 Clips:", agent.clipsBalance.toNumber());
-        if (agent.invitedBy && !isZeroPubkey(agent.invitedBy)) {
-          info("🤝 Invited by:", asPubkey(agent.invitedBy).toBase58());
+        info("📎 Clips:", result.clipsBalance);
+        if (result.invitedBy) {
+          info("🤝 Invited by:", shortKey(result.invitedBy));
         }
         info("📋 Next:", "Run `pc tasks` to see available work");
         blank();
@@ -345,48 +285,55 @@ cli
   .description("Create (or show) your invite code")
   .action(async () => {
     applyMockFlag();
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
-    const agentPda = getAgentPda(programClient.programId, pubkey);
-    const invitePda = getInvitePda(programClient.programId, pubkey);
+
+    const adapter = createAdapter();
+    const walletAddr = await adapter.getWalletAddress();
 
     const spinner = isJsonMode() ? null : spin("Preparing invite code...");
-    try {
-      await (programClient.account as any).agentAccount.fetch(agentPda);
 
-      let invite: any = null;
-      try {
-        invite = await (programClient.account as any).inviteRecord.fetch(invitePda);
-      } catch {
-        await programClient.methods
-          .createInvite()
-          .accounts({
-            protocol: getProtocolPda(programClient.programId),
-            agentAccount: agentPda,
-            inviteRecord: invitePda,
-            agent: pubkey,
-            systemProgram: anchor.web3.SystemProgram.programId,
-          })
-          .rpc();
-        invite = await (programClient.account as any).inviteRecord.fetch(invitePda);
+    try {
+      // Check if agent is registered
+      const agent = await adapter.getAgent(walletAddr);
+      if (!agent) {
+        throw new Error("Not registered. Run `pc init` first.");
       }
 
-      const inviteCode = new anchor.web3.PublicKey(invite.inviteCode).toBase58();
-      spinner?.succeed("Invite ready");
+      // Check for existing invite
+      const existingInvite = await adapter.getInvite(walletAddr);
+      if (existingInvite && existingInvite.exists) {
+        spinner?.succeed("Invite code ready");
+        const inviteCode = walletAddr; // The wallet address IS the invite code
+        if (isJsonMode()) {
+          jsonOutput({
+            ok: true,
+            invite_code: inviteCode,
+            invites_redeemed: existingInvite.invitesRedeemed,
+          });
+        } else {
+          info("🔗 Invite code:", inviteCode);
+          info("👥 Redeemed:", existingInvite.invitesRedeemed);
+          info("📋 Share:", `pc init --invite ${inviteCode}`);
+          blank();
+        }
+        return;
+      }
+
+      // Create new invite
+      if (spinner) spinner.text = "Creating invite on-chain...";
+      const result = await adapter.createInvite();
+
+      spinner?.succeed("Invite created!");
 
       if (isJsonMode()) {
         jsonOutput({
           ok: true,
-          agent_pubkey: pubkey.toBase58(),
-          invite_code: inviteCode,
-          invites_redeemed: invite.invitesRedeemed,
+          invite_code: result.inviteCode,
+          invites_redeemed: result.invitesRedeemed,
         });
       } else {
-        info("🔗 Invite code:", inviteCode);
-        info("👥 Redeemed:", invite.invitesRedeemed);
-        info("📋 Share:", `pc init --invite ${inviteCode}`);
+        info("🔗 Invite code:", result.inviteCode);
+        info("👥 Redeemed:", result.invitesRedeemed);
+        info("📋 Share:", `pc init --invite ${result.inviteCode}`);
         blank();
       }
     } catch (err) {
@@ -411,10 +358,9 @@ cli
   .description("Show your agent status and recommendations")
   .action(async () => {
     applyMockFlag();
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
+
+    const adapter = createAdapter();
+    const walletAddr = await adapter.getWalletAddress();
 
     if (!isJsonMode()) {
       banner();
@@ -423,7 +369,7 @@ cli
     const spinner = isJsonMode() ? null : spin("Loading agent status...");
 
     try {
-      const agent = await getAgentAccount(programClient, pubkey);
+      const agent = await adapter.getAgent(walletAddr);
 
       if (!agent) {
         spinner?.stop();
@@ -431,33 +377,28 @@ cli
           jsonOutput({
             agent: null,
             available_tasks: 0,
-            recommendation: "Not registered. Run: pc init",
+            recommendation: "Register first: pc init",
           });
         } else {
-          warn("Not registered yet");
-          info("📋 Next:", "Run `pc init` to get started");
+          warn("Not registered yet.");
+          info("📋 Next:", "Run `pc init` to register");
           blank();
         }
         return;
       }
 
-      const doable = await listDoableTasks(
-        programClient,
-        pubkey,
-        agent.efficiencyTier
-      );
-      spinner?.stop();
+      const doable = await adapter.listDoableTasks(walletAddr, agent.efficiencyTier);
+      const recommendation = doable.length > 0
+        ? `${doable.length} task${doable.length !== 1 ? "s" : ""} available — run: pc tasks`
+        : "No tasks available right now. Check back later.";
+
+      spinner?.succeed("Status loaded");
 
       if (isJsonMode()) {
-        const recommendation =
-          doable.length > 0
-            ? `${doable.length} tasks available. Run: pc tasks`
-            : "No tasks available. Check back later.";
-
         jsonOutput({
           agent: {
-            pubkey: pubkey.toBase58(),
-            clips: agent.clipsBalance.toNumber(),
+            wallet: walletAddr,
+            clips: agent.clipsBalance,
             tier: agent.efficiencyTier,
             tasks_completed: agent.tasksCompleted,
           },
@@ -466,14 +407,14 @@ cli
         });
       } else {
         heading("Agent");
-        info("👤 Wallet:", pubkey.toBase58());
-        info("📎 Clips:", agent.clipsBalance.toNumber());
+        info("👤 Wallet:", walletAddr);
+        info("📎 Clips:", agent.clipsBalance);
         info("⭐ Tier:", agent.efficiencyTier);
-        info("✅ Completed:", `${agent.tasksCompleted} tasks`);
-
-        heading("Tasks");
+        info("✅ Tasks completed:", agent.tasksCompleted);
+        blank();
+        heading("Recommendations");
         if (doable.length > 0) {
-          info("📋 Available:", `${doable.length} tasks`);
+          info("📋 Available:", `${doable.length} task${doable.length !== 1 ? "s" : ""}`);
           info("📋 Next:", "Run `pc tasks` to browse");
         } else {
           info("📋 Available:", "None right now");
@@ -502,17 +443,16 @@ cli
   .description("List available tasks you can complete")
   .action(async () => {
     applyMockFlag();
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
+
+    const adapter = createAdapter();
+    const walletAddr = await adapter.getWalletAddress();
 
     if (!isJsonMode()) {
       banner();
     }
 
     // Check registration
-    const agent = await getAgentAccount(programClient, pubkey);
+    const agent = await adapter.getAgent(walletAddr);
     if (!agent) {
       if (isJsonMode()) {
         jsonOutput({ ok: false, error: "Not registered. Run: pc init" });
@@ -527,11 +467,7 @@ cli
 
     try {
       const jsonMode = isJsonMode();
-      const doable = await listDoableTasks(
-        programClient,
-        pubkey,
-        agent.efficiencyTier
-      );
+      const doable = await adapter.listDoableTasks(walletAddr, agent.efficiencyTier);
 
       if (doable.length === 0) {
         spinner?.stop();
@@ -545,33 +481,28 @@ cli
         return;
       }
 
-      // Expand tasks with content from Storacha
+      // Expand tasks with content from Storacha (JSON mode only)
       const expanded: TaskInfo[] = await Promise.all(
-        doable.map(async (task: any) => {
-          const contentCid = fromFixedBytes(task.account.contentCid);
+        doable.map(async (task: TaskData) => {
           let content: unknown = null;
 
-          // Human mode does not display task content payloads, so skip CID fetches.
-          if (jsonMode) {
+          if (jsonMode && task.contentCid) {
             try {
-              content = await fetchJson(contentCid);
+              content = await fetchJson(task.contentCid);
             } catch {
               content = null;
             }
           }
 
           return {
-            taskId: task.account.taskId,
-            title: fromFixedBytes(task.account.title),
-            rewardClips: task.account.rewardClips.toNumber(),
-            maxClaims: task.account.maxClaims,
-            currentClaims: task.account.currentClaims,
-            minTier: task.account.minTier,
-            requiredTaskId:
-              task.account.requiredTaskId === NO_PREREQ_TASK_ID
-                ? null
-                : task.account.requiredTaskId,
-            contentCid,
+            taskId: task.taskId,
+            title: task.title,
+            rewardClips: task.rewardClips,
+            maxClaims: task.maxClaims,
+            currentClaims: task.currentClaims,
+            minTier: task.minTier,
+            requiredTaskId: task.requiredTaskId,
+            contentCid: task.contentCid,
             content,
           };
         })
@@ -631,10 +562,8 @@ cli
       process.exit(1);
     }
 
-    const programClient = await getProgram();
-    const provider = programClient.provider as anchor.AnchorProvider;
-    const wallet = provider.wallet as anchor.Wallet;
-    const pubkey = wallet.publicKey;
+    const adapter = createAdapter();
+    const walletAddr = await adapter.getWalletAddress();
 
     if (!isJsonMode()) {
       banner();
@@ -643,7 +572,7 @@ cli
     }
 
     // Check registration
-    const agent = await getAgentAccount(programClient, pubkey);
+    const agent = await adapter.getAgent(walletAddr);
     if (!agent) {
       if (isJsonMode()) {
         jsonOutput({ ok: false, error: "Not registered. Run: pc init" });
@@ -666,75 +595,46 @@ cli
       process.exit(1);
     }
 
+    // Check task exists and eligibility
+    const task = await adapter.getTask(taskId);
+    if (!task) {
+      if (isJsonMode()) {
+        jsonOutput({ ok: false, error: `Task ${taskId} not found` });
+      } else {
+        fail(`Task ${taskId} not found`);
+      }
+      process.exit(1);
+    }
+
+    if (agent.efficiencyTier < task.minTier) {
+      const msg = `Task requires tier ${task.minTier}, but your tier is ${agent.efficiencyTier}`;
+      if (isJsonMode()) {
+        jsonOutput({ ok: false, error: msg });
+      } else {
+        fail(msg);
+      }
+      process.exit(1);
+    }
+
     const spinner = isJsonMode() ? null : spin("Uploading proof to Storacha...");
 
     try {
       const proofCid = await uploadJson(proof, "data");
       if (spinner) spinner.text = "Submitting proof on-chain...";
 
-      const taskPda = getTaskPda(programClient.programId, taskId);
-      const agentPda = getAgentPda(programClient.programId, pubkey);
-      const claimPda = getClaimPda(programClient.programId, taskId, pubkey);
+      const result = await adapter.submitProof(taskId, proofCid);
 
-      const task = await (programClient.account as any).taskRecord.fetch(
-        taskPda
-      );
-
-      if (agent.efficiencyTier < task.minTier) {
-        throw new Error(
-          `Task requires tier ${task.minTier}, but your tier is ${agent.efficiencyTier}`
-        );
-      }
-
-      const submitBuilder = programClient.methods
-        .submitProof(taskId, toFixedBytes(proofCid, 64))
-        .accounts({
-          protocol: getProtocolPda(programClient.programId),
-          task: taskPda,
-          agentAccount: agentPda,
-          claim: claimPda,
-          agent: pubkey,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        });
-
-      if (task.requiredTaskId !== NO_PREREQ_TASK_ID) {
-        const prerequisiteClaimPda = getClaimPda(
-          programClient.programId,
-          task.requiredTaskId,
-          pubkey
-        );
-        const prerequisiteClaim = await provider.connection.getAccountInfo(
-          prerequisiteClaimPda
-        );
-        if (!prerequisiteClaim) {
-          throw new Error(
-            `Task requires completing task ${task.requiredTaskId} first`
-          );
-        }
-
-        submitBuilder.remainingAccounts([
-          {
-            pubkey: prerequisiteClaimPda,
-            isWritable: false,
-            isSigner: false,
-          },
-        ]);
-      }
-
-      await submitBuilder.rpc();
-
-      const reward = task.rewardClips.toNumber();
       spinner?.succeed("Proof submitted!");
 
       if (isJsonMode()) {
         jsonOutput({
           ok: true,
           proof_cid: proofCid,
-          clips_awarded: reward,
+          clips_awarded: result.clipsAwarded,
         });
       } else {
-        info("🔗 Proof CID:", shortPubkey(proofCid));
-        info("📎 Earned:", `${reward} Clips`);
+        info("🔗 Proof CID:", shortKey(proofCid));
+        info("📎 Earned:", `${result.clipsAwarded} Clips`);
         blank();
       }
     } catch (err) {
@@ -795,26 +695,26 @@ const configCmd = cli
 
 configCmd.action(() => {
   const mode = getMode();
-  const savedNetwork = getNetwork();
+  const server = resolveServerName();
+  const serverConfig = getServerConfig(server);
+
   if (isJsonMode()) {
     jsonOutput({
       mode,
-      network: NETWORK,
-      saved_network: savedNetwork,
-      rpc_url: RPC_URL,
-      rpc_fallback_url: RPC_FALLBACK_URL,
-      program_id: PROGRAM_ID.toBase58(),
+      server,
+      chain: serverConfig?.chain ?? "unknown",
+      rpc_url: serverConfig?.rpcUrl ?? "unknown",
+      contract: serverConfig?.contractAddress ?? "unknown",
       config_path: configPath(),
     });
   } else {
     banner();
     heading("Configuration");
     info("🔧 Mode:", mode);
-    info("🌐 Network:", NETWORK);
-    info("📝 Saved network:", savedNetwork);
-    info("🔗 RPC:", RPC_URL);
-    info("🛟 RPC fallback:", RPC_FALLBACK_URL);
-    info("🧾 Program:", PROGRAM_ID.toBase58());
+    info("🖥️  Server:", server);
+    info("⛓️  Chain:", serverConfig?.chain ?? "unknown");
+    info("🔗 RPC:", serverConfig?.rpcUrl ?? "unknown");
+    info("📜 Contract:", serverConfig?.contractAddress ?? "unknown");
     info("📁 Config:", configPath());
     blank();
   }
@@ -824,13 +724,14 @@ configCmd
   .command("get [key]")
   .description("Get a config value or show all config")
   .action((key?: string) => {
-    const values = {
+    const server = resolveServerName();
+    const serverConfig = getServerConfig(server);
+    const values: Record<string, string> = {
       mode: getMode(),
-      network: getNetwork(),
-      effective_network: NETWORK,
-      rpc_url: RPC_URL,
-      rpc_fallback_url: RPC_FALLBACK_URL,
-      program_id: PROGRAM_ID.toBase58(),
+      server,
+      chain: serverConfig?.chain ?? "unknown",
+      rpc_url: serverConfig?.rpcUrl ?? "unknown",
+      contract: serverConfig?.contractAddress ?? "unknown",
       config_path: configPath(),
     };
 
@@ -841,11 +742,10 @@ configCmd
         banner();
         heading("Configuration");
         info("🔧 Mode:", values.mode);
-        info("📝 Saved network:", values.network);
-        info("🌐 Effective network:", values.effective_network);
+        info("🖥️  Server:", values.server);
+        info("⛓️  Chain:", values.chain);
         info("🔗 RPC:", values.rpc_url);
-        info("🛟 RPC fallback:", values.rpc_fallback_url);
-        info("🧾 Program:", values.program_id);
+        info("📜 Contract:", values.contract);
         info("📁 Config:", values.config_path);
         blank();
       }
@@ -857,18 +757,15 @@ configCmd
       if (isJsonMode()) {
         jsonOutput({
           ok: false,
-          error:
-            'Unknown key. Valid keys: mode, network, effective_network, rpc_url, rpc_fallback_url, program_id, config_path',
+          error: `Unknown key. Valid keys: ${Object.keys(values).join(", ")}`,
         });
       } else {
-        fail(
-          'Unknown key. Valid keys: mode, network, effective_network, rpc_url, rpc_fallback_url, program_id, config_path'
-        );
+        fail(`Unknown key. Valid keys: ${Object.keys(values).join(", ")}`);
       }
       process.exit(1);
     }
 
-    const resolvedValue = (values as Record<string, string>)[normalized];
+    const resolvedValue = values[normalized];
     if (isJsonMode()) {
       jsonOutput({ key: normalized, value: resolvedValue });
     } else {
@@ -881,7 +778,7 @@ configCmd
 
 configCmd
   .command("set <key> <value>")
-  .description("Set a config value (supported: mode, network)")
+  .description("Set a config value (supported: mode, network, server)")
   .action((key: string, value: string) => {
     const normalizedKey = key.toLowerCase().trim();
     const normalizedValue = value.toLowerCase().trim();
@@ -926,10 +823,32 @@ configCmd
       return;
     }
 
+    if (normalizedKey === "server") {
+      const config = getServerConfig(normalizedValue);
+      if (!config) {
+        const available = listServers().map((s) => s.name).join(", ");
+        if (isJsonMode()) {
+          jsonOutput({ ok: false, error: `Unknown server. Available: ${available}` });
+        } else {
+          fail(`Unknown server. Available: ${available}`);
+        }
+        process.exit(1);
+      }
+      setServer(normalizedValue);
+      if (isJsonMode()) {
+        jsonOutput({ ok: true, key: "server", value: normalizedValue, chain: config.chain, label: config.label });
+      } else {
+        banner();
+        success(`Set server = ${normalizedValue} (${config.label})`);
+        blank();
+      }
+      return;
+    }
+
     if (isJsonMode()) {
-      jsonOutput({ ok: false, error: 'Unsupported key. Use "mode" or "network"' });
+      jsonOutput({ ok: false, error: 'Unsupported key. Use "mode", "network", or "server"' });
     } else {
-      fail('Unsupported key. Use "mode" or "network"');
+      fail('Unsupported key. Use "mode", "network", or "server"');
     }
     process.exit(1);
   });

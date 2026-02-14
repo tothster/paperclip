@@ -19,6 +19,7 @@ export type PaperclipNetwork = "devnet" | "localnet";
 export interface PaperclipSettings {
   mode: CliMode;
   network: PaperclipNetwork;
+  server?: string; // e.g. "solana-devnet", "monad-testnet"
   privyWalletId?: string;
   privyWalletAddress?: string;
 }
@@ -93,6 +94,16 @@ export function getConfiguredNetwork(): PaperclipNetwork | undefined {
 export function setNetwork(network: PaperclipNetwork): void {
   const settings = loadSettings();
   settings.network = network;
+  saveSettings(settings);
+}
+
+export function getServer(): string | undefined {
+  return loadSettings().server;
+}
+
+export function setServer(server: string): void {
+  const settings = loadSettings();
+  settings.server = server;
   saveSettings(settings);
 }
 
