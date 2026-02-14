@@ -95,10 +95,15 @@ export async function sendSponsoredEvmTransaction(
     }),
   });
 
+  // Privy may return hash in different fields depending on chain/mode:
+  // - hash: standard tx hash
+  // - transaction_hash: alternative field
+  // - user_operation_hash: ERC-4337 UserOperation hash (used for gas-sponsored txs)
   const hash =
     data?.data?.hash ||
     data?.hash ||
-    data?.data?.transaction_hash;
+    data?.data?.transaction_hash ||
+    data?.data?.user_operation_hash;
 
   if (typeof hash !== "string" || hash.length === 0) {
     throw new Error(
