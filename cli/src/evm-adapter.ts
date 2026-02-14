@@ -206,6 +206,10 @@ export class EVMAdapter implements ChainAdapter {
       if (task && task.isActive && task.currentClaims < task.maxClaims) {
         tasks.push(task);
       }
+      // Rate limit: 50ms delay between getTask calls to stay under Monad's 25/sec limit
+      if (taskId < totalTasks) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
     }
 
     return tasks;
@@ -218,21 +222,27 @@ export class EVMAdapter implements ChainAdapter {
     const tierEligible = allActive.filter((t) => agentTier >= t.minTier);
     if (tierEligible.length === 0) return [];
 
-    // Check claims and prerequisites
+    // Check claims and prerequisites (with rate limiting for Monad RPC)
     const doable: TaskData[] = [];
 
-    for (const task of tierEligible) {
+    for (let i = 0; i < tierEligible.length; i++) {
+      const task = tierEligible[i];
       // Check if already claimed
       const claim = await this.getClaim(task.taskId, agentWallet);
       if (claim) continue;
 
       // Check prerequisite
       if (task.requiredTaskId !== null) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
         const prereqClaim = await this.getClaim(task.requiredTaskId, agentWallet);
         if (!prereqClaim) continue;
       }
 
       doable.push(task);
+      // Rate limit: 50ms delay between getClaim calls to stay under 25/sec limit
+      if (i < tierEligible.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
     }
 
     return doable;
