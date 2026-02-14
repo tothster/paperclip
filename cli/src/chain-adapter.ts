@@ -121,7 +121,7 @@ export const BUILTIN_SERVERS: ServerConfig[] = [
     name: "monad-testnet",
     chain: "evm",
     chainId: 10143,
-    rpcUrl: "https://testnet-rpc.monad.xyz",
+    rpcUrl: "https://testnet.monad.validationcloud.io/v1/B-qb8IJf0sEYVv6Xzdlab_hntesBU1aKttHTotBRGSU",
     contractAddress: "0x4e794d12625456fb3043c329215555de4d0e2841",
     label: "Monad Testnet",
   },

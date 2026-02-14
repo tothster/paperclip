@@ -4,7 +4,7 @@
 set -uo pipefail
 
 CONTRACT="0x39fc17eebf5d55dfb006d68864633c622a3582c7"
-RPC="${MONAD_RPC_URL:-https://testnet-rpc.monad.xyz}"
+RPC="${MONAD_RPC_URL:-https://testnet.monad.validationcloud.io/v1/B-qb8IJf0sEYVv6Xzdlab_hntesBU1aKttHTotBRGSU}"
 PK="${DEPLOYER_PRIVATE_KEY}"
 NO_PREREQ=4294967295  # 0xFFFFFFFF
 

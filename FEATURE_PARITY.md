@@ -27,4 +27,4 @@ Tracks which features are implemented on each chain. **Both columns must be ✅ 
 | Chain         | Type   | Chain ID | RPC                             | Contract                                     |
 | ------------- | ------ | -------- | ------------------------------- | -------------------------------------------- |
 | Solana Devnet | Solana | —        | `https://api.devnet.solana.com` | Program ID in `Anchor.toml`                  |
-| Monad Testnet | EVM    | 10143    | `https://testnet-rpc.monad.xyz` | `0x4e794d12625456fb3043c329215555de4d0e2841` |
+| Monad Testnet | EVM    | 10143    | ValidationCloud (baked)         | `0x4e794d12625456fb3043c329215555de4d0e2841` |

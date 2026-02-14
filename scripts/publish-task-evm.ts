@@ -62,7 +62,7 @@ function loadEnv(envPath: string): void {
 loadEnv(ENV_PATH);
 
 const DEFAULT_CONTRACT = "0x4e794d12625456fb3043c329215555de4d0e2841";
-const DEFAULT_RPC_URL = "https://testnet-rpc.monad.xyz";
+const DEFAULT_RPC_URL = "https://testnet.monad.validationcloud.io/v1/B-qb8IJf0sEYVv6Xzdlab_hntesBU1aKttHTotBRGSU";
 
 const CONTRACT_ADDRESS = process.env.MONAD_CONTRACT || DEFAULT_CONTRACT;
 const RPC_URL = process.env.MONAD_RPC_URL || DEFAULT_RPC_URL;
